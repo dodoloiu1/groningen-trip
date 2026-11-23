@@ -94,8 +94,9 @@ svg{display:block;flex:none}
 .ghost{display:flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--line);border-radius:var(--r);
   padding:7px 11px;font-size:12.5px;color:var(--ink-2);transition:border-color .15s,color .15s}
 .ghost:hover{border-color:var(--line-2);color:var(--ink)}
-.strip{display:flex;align-items:stretch;border-top:1px solid var(--line);background:var(--surface-2);overflow-x:auto;scrollbar-width:none}
-.strip::-webkit-scrollbar{display:none}
+.strip{display:flex;align-items:stretch;border-top:1px solid var(--line);background:var(--surface-2)}
+.figs{display:flex;align-items:stretch;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.figs::-webkit-scrollbar{display:none}
 .fig{padding:7px 18px 9px;border-right:1px solid var(--line);flex:none}
 .fig-label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
 .fig-val{display:block;font-family:var(--mono);font-size:18px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap;transition:color .3s}
@@ -128,6 +129,7 @@ main{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:grid;grid-tem
 .lg-dir i{width:9px;height:9px;border-radius:50%;display:inline-block}
 .lg-modes{display:flex;gap:10px}
 .lg-modes span{display:flex;align-items:center;gap:4px}
+.legend em{font-style:normal}
 
 @media (min-width:1000px){
   main{grid-template-columns:minmax(0,1fr) minmax(0,1.02fr)}
@@ -340,7 +342,7 @@ td.act{text-align:right}
 </style>
 </head>
 <body>
-<a class="skip" href="#editor">Skip to the planner</a>
+<a class="skip" href="#editor" data-t="skip">Skip to the planner</a>
 
 <header class="top" id="top">
   <div class="top-in">
@@ -348,12 +350,16 @@ td.act{text-align:right}
       <h1 class="route">Bucharest
         <svg class="arrow" width="20" height="16" viewBox="0 0 20 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8h16M11 2l6 6-6 6"/></svg>
         Groningen</h1>
-      <p class="route-meta">OTP to GRQ<span class="only-wide"> / Thu 28 Jan 2027 / Sat 30 Jan 2027</span><span class="only-narrow"> / 28 to 30 Jan 2027</span> / 1 passenger</p>
+      <p class="route-meta"><span data-t="metaFrom">OTP to GRQ</span><span class="only-wide" data-t="metaWide"> / Thu 28 Jan 2027 / Sat 30 Jan 2027</span><span class="only-narrow" data-t="metaShort"> / 28 to 30 Jan 2027</span><span data-t="metaPax"> / 1 passenger</span></p>
     </div>
     <div class="tools">
       <label class="rate" title="Editable exchange rate">1 EUR =
         <input id="rate" type="number" value="5.35" step="0.01" min="1" inputmode="decimal" aria-label="RON per euro"> RON
       </label>
+      <button class="ghost" id="lang" aria-label="Language">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+        <span id="langLabel">RO</span>
+      </button>
       <button class="ghost" id="theme" aria-pressed="false">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 13A9 9 0 0 1 11 3a9 9 0 1 0 10 10Z"/></svg>
         <span id="themeLabel">Dark</span>
@@ -361,13 +367,15 @@ td.act{text-align:right}
     </div>
   </div>
   <div class="strip">
-    <div class="fig"><span class="fig-label">Total EUR</span><span class="fig-val" id="fEur">0.00</span></div>
-    <div class="fig"><span class="fig-label">In RON</span><span class="fig-val" id="fRon">0.00</span></div>
-    <div class="fig"><span class="fig-label">Door to door</span><span class="fig-val" id="fDur">0h</span></div>
-    <div class="fig" id="figWarn"><span class="fig-label">Warnings</span><span class="fig-val" id="fWarn">0</span></div>
+    <div class="figs">
+      <div class="fig"><span class="fig-label" data-t="totalEur">Total EUR</span><span class="fig-val" id="fEur">0.00</span></div>
+      <div class="fig"><span class="fig-label" data-t="inRon">In RON</span><span class="fig-val" id="fRon">0.00</span></div>
+      <div class="fig"><span class="fig-label" data-t="door">Door to door</span><span class="fig-val" id="fDur">0h</span></div>
+      <div class="fig" id="figWarn"><span class="fig-label" data-t="warnCount">Warnings</span><span class="fig-val" id="fWarn">0</span></div>
+    </div>
     <button class="primary" id="copy">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5H6a1 1 0 0 0-1 1v9"/></svg>
-      <span id="copyLabel">Copy summary</span>
+      <span id="copyLabel" data-t="copy">Copy summary</span>
     </button>
   </div>
 </header>
@@ -377,16 +385,16 @@ td.act{text-align:right}
     <div id="map"></div>
     <div class="legend">
       <div class="lg-dir">
-        <span><i style="background:#0b6a57"></i>Out</span>
-        <span><i style="background:#8a3a5b"></i>Return</span>
+        <span><i style="background:#0b6a57"></i><em data-t="lgOut">Out</em></span>
+        <span><i style="background:#8a3a5b"></i><em data-t="lgReturn">Return</em></span>
       </div>
       <div class="lg-modes">
-        <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/></svg>Flight</span>
-        <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="currentColor" stroke-width="2.5"/></svg>Train</span>
-        <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="currentColor" stroke-width="2.5" stroke-dasharray="1 4" stroke-linecap="round"/></svg>Bus</span>
+        <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/></svg><em data-t="lgFlight">Flight</em></span>
+        <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="currentColor" stroke-width="2.5"/></svg><em data-t="lgTrain">Train</em></span>
+        <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="currentColor" stroke-width="2.5" stroke-dasharray="1 4" stroke-linecap="round"/></svg><em data-t="lgBus">Bus</em></span>
       </div>
     </div>
-    <button class="map-btn" id="mapToggle" aria-expanded="true">Hide map</button>
+    <button class="map-btn" id="mapToggle" aria-expanded="true" data-t="hideMap">Hide map</button>
   </aside>
 
   <div class="panel">
@@ -396,30 +404,30 @@ td.act{text-align:right}
           <button data-dir="out" class="on" aria-pressed="true">Outbound <span>28 Jan</span></button>
           <button data-dir="back" aria-pressed="false">Return <span>30 Jan</span></button>
         </div>
-        <label class="switch"><input type="checkbox" id="roundtrip" checked> Round trip</label>
+        <label class="switch"><input type="checkbox" id="roundtrip" checked> <span data-t="roundTrip">Round trip</span></label>
       </div>
       <div id="editor"></div>
     </section>
 
     <section class="block">
-      <h2>Your itinerary</h2>
+      <h2 data-t="itinerary">Your itinerary</h2>
       <ol class="route-list" id="timeline"></ol>
     </section>
 
     <section class="block">
-      <h2>Warnings</h2>
+      <h2 data-t="warnH">Warnings</h2>
       <div id="warnings"></div>
     </section>
 
     <section class="block">
-      <h2>Combo comparison</h2>
-      <p class="lede">Four preset combinations, priced with the rate and toggles above. Load one to edit it.</p>
+      <h2 data-t="compareH">Combo comparison</h2>
+      <p class="lede" data-t="compareLede">Preset combinations, priced with the rate and toggles above. Load one to edit it.</p>
       <div class="tw"><table id="compare"></table></div>
     </section>
 
     <footer class="foot">
-      <p><b>One passenger</b>, prices per person per direction. Times are local: Romania is one hour ahead of the Netherlands. A flight is dashed, a train solid, a bus dotted on the map.</p>
-      <p>Fares, timetables and the FlixBus routes were collected by hand in late November 2026. Re-check them before booking. Anything tagged unverified is a placeholder you can edit here.</p>
+      <p data-th="foot1"><b>One passenger</b>, prices per person per direction. Times are local: Romania is one hour ahead of the Netherlands. A flight is dashed, a train solid, a bus dotted on the map.</p>
+      <p data-th="foot2">Fares, timetables and the FlixBus routes were collected by hand in late November 2026. Re-check them before booking. Anything tagged unverified is a placeholder you can edit here.</p>
     </footer>
   </div>
 </main>
@@ -466,7 +474,9 @@ td.act{text-align:right}
    "city": "Bucharest",
    "lat": 44.5711,
    "lng": 26.0857,
-   "tz": 2
+   "tz": 2,
+   "name_ro": "București Henri Coandă",
+   "city_ro": "București"
   },
   "AMS": {
    "name": "Amsterdam Schiphol",
@@ -519,34 +529,39 @@ td.act{text-align:right}
      "name": "Basic",
      "price": 115,
      "desc": "Small bag 40x30x15 only. No hand baggage. No changes, no refund.",
-     "noChecked": true
+     "noChecked": true,
+     "desc_ro": "Doar geantă mică 40x30x15. Fără bagaj de mână. Fără modificări, fără rambursare."
     },
     {
      "id": "light",
      "name": "Light",
      "price": 150,
      "desc": "Hand baggage 55x35x25. Changes cost EUR 70 plus fare difference.",
-     "noChecked": true
+     "noChecked": true,
+     "desc_ro": "Bagaj de mână 55x35x25. Modificările costă 70 EUR plus diferența de tarif."
     },
     {
      "id": "standard",
      "name": "Standard",
      "price": 176,
      "desc": "One checked bag 23 kg. Free seat at check-in. Economy Comfort +EUR 21.",
-     "comfort": true
+     "comfort": true,
+     "desc_ro": "Un bagaj de cală 23 kg. Loc gratuit la check-in. Economy Comfort +21 EUR."
     },
     {
      "id": "flex",
      "name": "Flex",
      "price": 241,
      "desc": "Checked bag, SkyPriority. Free changes. Refundable before departure.",
-     "comfort": true
+     "comfort": true,
+     "desc_ro": "Bagaj de cală, SkyPriority. Modificări gratuite. Rambursabil înainte de plecare."
     },
     {
      "id": "business",
      "name": "Business",
      "price": 319,
-     "desc": "Business cabin: baggage, seat and lounge access where available."
+     "desc": "Business cabin: baggage, seat and lounge access where available.",
+     "desc_ro": "Cabina business: bagaje, loc și lounge unde există."
     }
    ]
   },
@@ -569,12 +584,16 @@ td.act{text-align:right}
     {
      "id": "bundle",
      "name": "Smart fare bundle",
-     "desc": "Bundle as quoted. Confirm the bag allowance at checkout."
+     "desc": "Bundle as quoted. Confirm the bag allowance at checkout.",
+     "desc_ro": "Pachetul așa cum a fost cotat. Confirmă ce include la plată.",
+     "name_ro": "Pachet Smart fare"
     },
     {
      "id": "nobundle",
      "name": "Free small bag only",
-     "desc": "Fare plus admin fee. Estimate, not confirmed."
+     "desc": "Fare plus admin fee. Estimate, not confirmed.",
+     "name_ro": "Doar geanta mică gratuită",
+     "desc_ro": "Tarif plus taxa de administrare. Estimare, neconfirmată."
     }
    ]
   },
@@ -586,31 +605,36 @@ td.act{text-align:right}
      "name": "Economy Light",
      "price": 106.32,
      "noChecked": true,
-     "desc": "Hand bag 8 kg total, no checked bag. Changes cost EUR 80 plus fare difference."
+     "desc": "Hand bag 8 kg total, no checked bag. Changes cost EUR 80 plus fare difference.",
+     "desc_ro": "Geantă de mână 8 kg total, fără bagaj de cală. Modificări: 80 EUR plus diferența."
     },
     {
      "id": "saver",
      "name": "Economy Saver",
      "price": 136.32,
-     "desc": "One checked bag 23 kg, hand bag 8 kg. Changes cost EUR 80 plus fare difference."
+     "desc": "One checked bag 23 kg, hand bag 8 kg. Changes cost EUR 80 plus fare difference.",
+     "desc_ro": "Un bagaj de cală 23 kg, geantă de mână 8 kg. Modificări: 80 EUR plus diferența."
     },
     {
      "id": "optim",
      "name": "Economy Optim",
      "price": 261.32,
-     "desc": "One checked bag 23 kg, free seat, refund for EUR 80. Changes cost EUR 60 plus fare difference."
+     "desc": "One checked bag 23 kg, free seat, refund for EUR 80. Changes cost EUR 60 plus fare difference.",
+     "desc_ro": "Un bagaj de cală 23 kg, loc gratuit, rambursare 80 EUR. Modificări: 60 EUR plus diferența."
     },
     {
      "id": "flex",
      "name": "Economy Flex",
      "price": 425.32,
-     "desc": "Free changes, free refund, one checked bag 23 kg, free seat."
+     "desc": "Free changes, free refund, one checked bag 23 kg, free seat.",
+     "desc_ro": "Modificări și rambursare gratuite, un bagaj de cală 23 kg, loc gratuit."
     },
     {
      "id": "business",
      "name": "Business",
      "price": 425.32,
-     "desc": "Business cabin. The lowest business fare, seat and bags included."
+     "desc": "Business cabin. The lowest business fare, seat and bags included.",
+     "desc_ro": "Cabina business. Cel mai mic tarif business, loc și bagaje incluse."
     }
    ],
    "faresBack": [
@@ -618,25 +642,29 @@ td.act{text-align:right}
      "id": "saver",
      "name": "Economy Saver",
      "price": 195.23,
-     "desc": "One checked bag 23 kg, hand bag 8 kg. Changes cost EUR 80 plus fare difference."
+     "desc": "One checked bag 23 kg, hand bag 8 kg. Changes cost EUR 80 plus fare difference.",
+     "desc_ro": "Un bagaj de cală 23 kg, geantă de mână 8 kg. Modificări: 80 EUR plus diferența."
     },
     {
      "id": "optim",
      "name": "Economy Optim",
      "price": 320.23,
-     "desc": "One checked bag 23 kg, free seat, refund for EUR 80. Changes cost EUR 60 plus fare difference."
+     "desc": "One checked bag 23 kg, free seat, refund for EUR 80. Changes cost EUR 60 plus fare difference.",
+     "desc_ro": "Un bagaj de cală 23 kg, loc gratuit, rambursare 80 EUR. Modificări: 60 EUR plus diferența."
     },
     {
      "id": "flex",
      "name": "Economy Flex",
      "price": 484.23,
-     "desc": "Free changes, free refund, one checked bag 23 kg, free seat."
+     "desc": "Free changes, free refund, one checked bag 23 kg, free seat.",
+     "desc_ro": "Modificări și rambursare gratuite, un bagaj de cală 23 kg, loc gratuit."
     },
     {
      "id": "business",
      "name": "Business",
      "price": 484.23,
-     "desc": "Business cabin. The lowest business fare, seat and bags included."
+     "desc": "Business cabin. The lowest business fare, seat and bags included.",
+     "desc_ro": "Cabina business. Cel mai mic tarif business, loc și bagaje incluse."
     }
    ]
   }
@@ -658,7 +686,9 @@ td.act{text-align:right}
      "time": "08:00",
      "node": "AMS"
     },
-    "note": "Morning flight. Leaves enough time for the FlixBus from Sloterdijk."
+    "note": "Morning flight. Leaves enough time for the FlixBus from Sloterdijk.",
+    "sub_ro": "direct, dimineața",
+    "note_ro": "Zbor de dimineață. Rămâne timp pentru FlixBus din Sloterdijk."
    },
    {
     "id": "klm-1800",
@@ -675,7 +705,9 @@ td.act{text-align:right}
      "time": "20:00",
      "node": "AMS"
     },
-    "note": "Evening flight. The 10:05 FlixBus is long gone, the train still runs."
+    "note": "Evening flight. The 10:05 FlixBus is long gone, the train still runs.",
+    "sub_ro": "direct, seara",
+    "note_ro": "Zbor de seară. FlixBus-ul de 10:05 e demult plecat, trenul încă circulă."
    },
    {
     "id": "tarom-0835",
@@ -692,7 +724,9 @@ td.act{text-align:right}
      "time": "10:40",
      "node": "AMS"
     },
-    "note": "Nonstop, 3h05, its own metal. Lands at Schiphol, so both ground options are open."
+    "note": "Nonstop, 3h05, its own metal. Lands at Schiphol, so both ground options are open.",
+    "sub_ro": "direct, dimineața",
+    "note_ro": "Nonstop, 3h05, operat de TAROM. Aterizează la Schiphol, deci ambele variante de sol sunt deschise."
    },
    {
     "id": "tarom-1650",
@@ -709,7 +743,9 @@ td.act{text-align:right}
      "time": "18:55",
      "node": "AMS"
     },
-    "note": "Nonstop, 3h05. Late enough that the 10:05 FlixBus is gone."
+    "note": "Nonstop, 3h05. Late enough that the 10:05 FlixBus is gone.",
+    "sub_ro": "direct, după-amiaza",
+    "note_ro": "Nonstop, 3h05. Prea târziu pentru FlixBus-ul de 10:05."
    },
    {
     "id": "wizz-3071",
@@ -726,7 +762,9 @@ td.act{text-align:right}
      "time": "08:50",
      "node": "EIN"
     },
-    "note": "Lands at Eindhoven Airport, 25 minutes by bus from Eindhoven Centraal."
+    "note": "Lands at Eindhoven Airport, 25 minutes by bus from Eindhoven Centraal.",
+    "sub_ro": "direct",
+    "note_ro": "Aterizează la Eindhoven Airport, la 25 de minute cu autobuzul de Eindhoven Centraal."
    }
   ],
   "ground": {
@@ -754,10 +792,15 @@ td.act{text-align:right}
        },
        "transfer": 20,
        "operator": "NS Intercity",
-       "note": "Direct. Other departures run at :03 and :29 with one or two changes, and at :33 with three."
+       "note": "Direct. Other departures run at :03 and :29 with one or two changes, and at :33 with three.",
+       "operator_ro": "NS Intercity",
+       "note_ro": "Direct. Alte plecări la :03 și :29 cu una sau două schimbări, și la :33 cu trei."
       }
      ],
-     "note": "Straightforward and fastest."
+     "note": "Straightforward and fastest.",
+     "name_ro": "NS Intercity spre Groningen",
+     "sub_ro": "direct",
+     "note_ro": "Simplu și cel mai rapid."
     },
     {
      "id": "BC",
@@ -781,7 +824,8 @@ td.act{text-align:right}
         ]
        },
        "transfer": 15,
-       "operator": "NS Sprinter"
+       "operator": "NS Sprinter",
+       "operator_ro": "NS Sprinter"
       },
       {
        "from": "SLO",
@@ -796,10 +840,15 @@ td.act{text-align:right}
        },
        "transfer": 20,
        "operator": "FlixBus",
-       "note": "Wifi and power on board. Only the 10:05 departure was checked, there are about ten a day."
+       "note": "Wifi and power on board. Only the 10:05 departure was checked, there are about ten a day.",
+       "operator_ro": "FlixBus",
+       "note_ro": "Wifi și priză la bord. Verificată doar plecarea de 10:05, sunt vreo zece pe zi."
       }
      ],
-     "note": "Cheapest, about an hour slower, and only works after a morning landing."
+     "note": "Cheapest, about an hour slower, and only works after a morning landing.",
+     "name_ro": "Sprinter la Sloterdijk, apoi FlixBus",
+     "sub_ro": "2 schimbări de mijloc",
+     "note_ro": "Cel mai ieftin, cu vreo oră mai lent, și merge doar după un zbor de dimineață."
     }
    ],
    "EIN": [
@@ -827,7 +876,9 @@ td.act{text-align:right}
        },
        "transfer": 20,
        "operator": "Airport bus",
-       "note": "Fare and duration not checked yet. Editable."
+       "note": "Fare and duration not checked yet. Editable.",
+       "operator_ro": "Autobuz de aeroport",
+       "note_ro": "Prețul și durata nu sunt verificate. Se pot edita."
       },
       {
        "from": "EHV",
@@ -846,10 +897,15 @@ td.act{text-align:right}
        },
        "transfer": 10,
        "operator": "NS Intercity",
-       "note": "Departures at :46 have one change, :16 have two."
+       "note": "Departures at :46 have one change, :16 have two.",
+       "operator_ro": "NS Intercity",
+       "note_ro": "Plecările de la :46 au o schimbare, cele de la :16 au două."
       }
      ],
-     "note": "The only sensible way out of Eindhoven Airport. There is no FlixBus worth taking: six hours on the road."
+     "note": "The only sensible way out of Eindhoven Airport. There is no FlixBus worth taking: six hours on the road.",
+     "name_ro": "Autobuz de aeroport, apoi NS spre Groningen",
+     "sub_ro": "1 schimbare",
+     "note_ro": "Singura variantă rezonabilă din Eindhoven Airport. FlixBus nu merită: șase ore pe drum."
     }
    ]
   }
@@ -869,7 +925,9 @@ td.act{text-align:right}
     },
     "dur": 180,
     "note": "Times not collected. Departure defaults to the outbound clock time, the arrival is calculated from the 3h00 flight.",
-    "editable": true
+    "editable": true,
+    "sub_ro": "AMS – OTP",
+    "note_ro": "Orele nu sunt colectate. Plecarea pornește de la ora dusului, sosirea se calculează din zborul de 3h00."
    },
    {
     "id": "tarom-back-1140",
@@ -886,7 +944,9 @@ td.act{text-align:right}
      "time": "16:25",
      "node": "OTP"
     },
-    "note": "Nonstop, 2h45. The 08:18 train from Groningen lands you at Schiphol with time to spare."
+    "note": "Nonstop, 2h45. The 08:18 train from Groningen lands you at Schiphol with time to spare.",
+    "sub_ro": "direct, spre amiază",
+    "note_ro": "Nonstop, 2h45. Trenul de 08:18 din Groningen te lasă la Schiphol cu timp."
    },
    {
     "id": "tarom-back-1945",
@@ -903,7 +963,9 @@ td.act{text-align:right}
      "time": "23:30",
      "node": "OTP"
     },
-    "note": "Nonstop, 2h45. Home just before midnight."
+    "note": "Nonstop, 2h45. Home just before midnight.",
+    "sub_ro": "direct, seara",
+    "note_ro": "Nonstop, 2h45. Ajungi acasă cu puțin înainte de miezul nopții."
    },
    {
     "id": "wizz-back",
@@ -920,7 +982,9 @@ td.act{text-align:right}
      "time": "13:10",
      "node": "OTP"
     },
-    "note": "Fixed times. 09:25 is early enough to break the same-day train."
+    "note": "Fixed times. 09:25 is early enough to break the same-day train.",
+    "sub_ro": "EIN – OTP",
+    "note_ro": "Ore fixe. 09:25 e destul de devreme ca să rupă legătura de tren din aceeași zi."
    }
   ],
   "ground": {
@@ -950,10 +1014,15 @@ td.act{text-align:right}
        },
        "transfer": 15,
        "operator": "NS Intercity",
-       "note": "Two per hour. The example run is 08:48 to 11:00."
+       "note": "Two per hour. The example run is 08:48 to 11:00.",
+       "operator_ro": "NS Intercity",
+       "note_ro": "Două pe oră. Exemplu: 08:48 – 11:00."
       }
      ],
-     "note": "The planner picks the last train that still makes the flight."
+     "note": "The planner picks the last train that still makes the flight.",
+     "name_ro": "NS Intercity spre Schiphol",
+     "sub_ro": "direct",
+     "note_ro": "Plannerul alege ultimul tren care prinde zborul."
     },
     {
      "id": "BC-rev",
@@ -977,7 +1046,9 @@ td.act{text-align:right}
        },
        "transfer": 20,
        "operator": "FlixBus",
-       "note": "Return timetable not checked. Price taken from the outbound."
+       "note": "Return timetable not checked. Price taken from the outbound.",
+       "operator_ro": "FlixBus",
+       "note_ro": "Orarul de retur nu e verificat. Prețul e luat de la dus."
       },
       {
        "from": "SLO",
@@ -995,10 +1066,14 @@ td.act{text-align:right}
         ]
        },
        "transfer": 10,
-       "operator": "NS Sprinter"
+       "operator": "NS Sprinter",
+       "operator_ro": "NS Sprinter"
       }
      ],
-     "note": "Placeholder schedule. Verify the bus before you rely on it."
+     "note": "Placeholder schedule. Verify the bus before you rely on it.",
+     "name_ro": "FlixBus la Sloterdijk, apoi Sprinter",
+     "sub_ro": "provizoriu",
+     "note_ro": "Orar provizoriu. Verifică autobuzul înainte să te bazezi pe el."
     }
    ],
    "EIN": [
@@ -1027,7 +1102,9 @@ td.act{text-align:right}
        },
        "transfer": 15,
        "operator": "NS Intercity",
-       "note": "Departures at :18 have one change, :48 have two. Example: 06:18 to 09:14."
+       "note": "Departures at :18 have one change, :48 have two. Example: 06:18 to 09:14.",
+       "operator_ro": "NS Intercity",
+       "note_ro": "Plecările de la :18 au o schimbare, cele de la :48 au două. Exemplu: 06:18 – 09:14."
       },
       {
        "from": "EHV",
@@ -1047,10 +1124,15 @@ td.act{text-align:right}
        },
        "transfer": 10,
        "operator": "Airport bus",
-       "note": "Fare and duration not checked yet. Editable."
+       "note": "Fare and duration not checked yet. Editable.",
+       "operator_ro": "Autobuz de aeroport",
+       "note_ro": "Prețul și durata nu sunt verificate. Se pot edita."
       }
      ],
-     "note": "No morning connection reaches the airport before 09:25, so the planner puts you in a hotel the night before."
+     "note": "No morning connection reaches the airport before 09:25, so the planner puts you in a hotel the night before.",
+     "name_ro": "NS spre Eindhoven, apoi autobuz de aeroport",
+     "sub_ro": "1 schimbare",
+     "note_ro": "Nicio legătură de dimineață nu ajunge la aeroport înainte de 09:25, așa că plannerul te pune la hotel cu o noapte înainte."
     }
    ]
   }
@@ -1069,7 +1151,9 @@ td.act{text-align:right}
     "flight": "klm-back",
     "fare": "basic",
     "ground": "A-rev"
-   }
+   },
+   "label_ro": "KLM Basic + tren direct",
+   "sub_ro": "cel mai ieftin KLM, cel mai rapid la sol"
   },
   {
    "id": "tarom-train",
@@ -1084,7 +1168,9 @@ td.act{text-align:right}
     "flight": "tarom-back-1140",
     "fare": "saver",
     "ground": "A-rev"
-   }
+   },
+   "label_ro": "TAROM Saver + tren direct",
+   "sub_ro": "alt nonstop, tarife proprii"
   },
   {
    "id": "klm-bus",
@@ -1099,7 +1185,9 @@ td.act{text-align:right}
     "flight": "klm-back",
     "fare": "basic",
     "ground": "BC-rev"
-   }
+   },
+   "label_ro": "KLM Basic + Sprinter și FlixBus",
+   "sub_ro": "cel mai ieftin la sol, cu o oră mai lent"
   },
   {
    "id": "wizz-bundle",
@@ -1114,7 +1202,9 @@ td.act{text-align:right}
     "flight": "wizz-back",
     "fare": "bundle",
     "ground": "E-rev"
-   }
+   },
+   "label_ro": "Wizz cu pachet + autobuz și tren",
+   "sub_ro": "cu noapte la hotel"
   },
   {
    "id": "wizz-basic",
@@ -1129,7 +1219,9 @@ td.act{text-align:right}
     "flight": "wizz-back",
     "fare": "nobundle",
     "ground": "E-rev"
-   }
+   },
+   "label_ro": "Wizz fără pachet + autobuz și tren",
+   "sub_ro": "cu noapte la hotel"
   }
  ],
  "paths": {
@@ -1790,8 +1882,141 @@ const pad = n => String(n).padStart(2, "0");
 const nodeTz = k => DATA.nodes[k].tz;
 const hmt = s => { const [h, m] = s.split(":").map(Number); return h * 60 + m; };
 const mt = m => pad(Math.floor(m / 60) % 24) + ":" + pad(m % 60);
-const eur = n => "€" + n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const ron = n => n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/* ---------- language ---------- */
+const T = {
+  en: {
+    skip: "Skip to the planner",
+    metaFrom: "OTP to GRQ", metaWide: " / Thu 28 Jan 2027 / Sat 30 Jan 2027", metaShort: " / 28 to 30 Jan 2027", metaPax: " / 1 passenger",
+    totalEur: "Total EUR", inRon: "In RON", door: "Door to door", warnCount: "Warnings",
+    copy: "Copy summary", copied: "Copied", dark: "Dark", light: "Light",
+    outbound: "Outbound", inbound: "Return", d28: "28 Jan", d30: "30 Jan", roundTrip: "Round trip",
+    itinerary: "Your itinerary", warnH: "Warnings", compareH: "Combo comparison",
+    compareLede: "Preset combinations, priced with the rate and toggles above. Load one to edit it.",
+    hideMap: "Hide map", showMap: "Show map",
+    lgOut: "Out", lgReturn: "Return", lgFlight: "Flight", lgTrain: "Train", lgBus: "Bus",
+    step1out: "Flight from Bucharest", step1back: "Flight back",
+    step2fare: "Fare and baggage", step2bundle: "Baggage bundle",
+    step3out: "Airport to Groningen", step3back: "Groningen to the airport",
+    flight1: "flight", flightN: "flights", fare1: "fare", fareN: "fares", option1: "option", optionN: "options",
+    toggle: "toggle", perPerson: "per person", oneWay: "one way", notYet: "not yet added",
+    noTimes: "No times, no price, no fare",
+    comfort: "Economy Comfort (extra legroom)", comfortOnly: "Standard and Flex only", comfortPlus: "+%s comfort",
+    returnFare: "Return fare per person", notCollected: "not collected", useFare: "use fare price",
+    departsAMS: "Departs AMS", provisional: "provisional", matchOut: "match outbound",
+    noDeparture: "no departure left after landing", tooLate: "too late", reaches: "reaches flight",
+    hotelTag: "hotel night", noConnMorning: "no connection that morning",
+    fullFare: "full fare", withDiscount: "with discount",
+    noGroundEditor: "No ground options for %s yet. Add them in the data block.",
+    dalLabel: "NS Flex Dal Voordeel", dalNote: "40% off trains outside peak hours, subscription not included",
+    dirOut: "Outbound", dirBack: "Return", dateJoin: " to ",
+    night1: "night", nightN: "nights", nightIn: "Night in %s",
+    estimated: "estimated", timeEstimated: "time estimated", unverifiedPrice: "unverified price",
+    dalPrice: "Dal Voordeel price", peakFare: "full fare, peak hours",
+    totalWord: "Total", doorToDoor: "Door to door",
+    clean: "Nothing flagged for this combination.",
+    hotelField: "Hotel for one night", defaultUnv: "default, unverified",
+    busField: "Airport bus Eindhoven, single", notChecked: "not checked",
+    thCombo: "Combination", thTotal: "Total", thTime: "Time", noConn: "no connection",
+    load: "load", loaded: "loaded",
+    checkTitle: "Buffer at Schiphol", checkOk: "Comfortable. The train arrives and the flight leaves %s after you left Groningen.",
+    checkTight: "Below three hours. Reconsider the flight time.",
+    foot1: "<b>One passenger</b>, prices per person per direction. Times are local: Romania is one hour ahead of the Netherlands. A flight is dashed, a train solid, a bus dotted on the map.",
+    foot2: "Fares, timetables and the FlixBus routes were collected by hand in late November 2026. Re-check them before booking. Anything tagged unverified is a placeholder you can edit here.",
+    sumTitle: "Bucharest to Groningen, 28 to 30 January 2027, 1 passenger",
+    sumOut: "OUTBOUND, Thu 28 Jan", sumBack: "RETURN, Sat 30 Jan",
+    sumNights: "%s nights in %s", sumHotel: "%s hotel in %s, %s (estimated)", sumTbd: "(time estimated)",
+    sumTotal: "Total %s / RON %s at 1 EUR = %s RON", sumDoor: "Door to door %s", sumWarn: "Warnings:",
+    sumNote: "Prices per person, collected by hand, re-check before booking.",
+    wNoGround: "No last mile for %s", wNoGroundBody: "This airport has no ground options in the data yet.",
+    wNoConnOut: "No connection after landing", wNoConnOutBody: "The %s has no departure left after your flight lands. Pick another last mile or an earlier flight.",
+    wNoBack: "No way back from %s", wNoBackBody: "Add ground options for this airport.",
+    wNoConnBack: "No connection reaches the airport in time", wNoConnBackBody: "Nothing from Groningen gets you to %s before the %s departure. The legs below are the closest the timetable gets. Move the flight later or plan a night near the airport.",
+    wOvernight: "Overnight in %s on %s required", wOvernightBody: "%s leaves %s at %s. No ground connection from Groningen reaches the airport in time that morning, so the plan above puts you in a hotel the night before.",
+    wTight: "Tight connection at the airport", wTightBody: "The train leaves Groningen %s before the flight. Under 3 hours is risky with a checked bag.",
+    wWizzEst: "Wizz price without the bundle is an estimate", wWizzEstBody: "RON 498 round trip comes from the two fares plus admin fees. At that price Wizz only sells the free 40x30x20 bag, so a cabin bag costs extra.",
+    wNoBag: "%s %s has no checked bag", wNoBagBody: "%s Two nights fit in hand luggage if you pack small, otherwise take the next fare up.",
+    wDalPeak: "Dal Voordeel does not apply on every train", wDalPeakBody: "The 40% discount runs off-peak only, not on weekdays 06:30 to 09:00 and 16:00 to 18:30. %s train in this plan departs inside those hours and is priced at full fare.",
+    wDalSub: "Dal Voordeel needs a subscription", wDalSubBody: "EUR 19.98 per trip assumes the NS Flex subscription is already paid for. The monthly fee is not in the total.",
+    wPlaceholders: "Some numbers are placeholders", wPlaceholdersBody: "Not checked yet: %s. Edit the ones with an input below.",
+    wHotelNote: "No ground connection reaches the airport in time that morning, so the night goes here instead.",
+    wizzFlight: "Flight", wizzBundle: "bundle", wizzAdmin: "admin fee", wizzNoBundle: "no bundle"
+  },
+  ro: {
+    skip: "Sari la planner",
+    metaFrom: "OTP – GRQ", metaWide: " / joi 28 ian 2027 / sâm 30 ian 2027", metaShort: " / 28–30 ian 2027", metaPax: " / 1 pasager",
+    totalEur: "Total EUR", inRon: "În RON", door: "Ușă la ușă", warnCount: "Alerte",
+    copy: "Copiază rezumatul", copied: "Copiat", dark: "Întunecat", light: "Luminos",
+    outbound: "Dus", inbound: "Întors", d28: "28 ian", d30: "30 ian", roundTrip: "Dus-întors",
+    itinerary: "Itinerarul tău", warnH: "Avertismente", compareH: "Comparație combinații",
+    compareLede: "Combinații prestabilite, calculate cu rata și opțiunile de mai sus. Încarcă una ca să o editezi.",
+    hideMap: "Ascunde harta", showMap: "Arată harta",
+    lgOut: "Dus", lgReturn: "Întors", lgFlight: "Avion", lgTrain: "Tren", lgBus: "Autobuz",
+    step1out: "Zbor din București", step1back: "Zbor de întoarcere",
+    step2fare: "Tarif și bagaj", step2bundle: "Pachet de bagaj",
+    step3out: "Aeroport → Groningen", step3back: "Groningen → aeroport",
+    flight1: "zbor", flightN: "zboruri", fare1: "tarif", fareN: "tarife", option1: "opțiune", optionN: "opțiuni",
+    toggle: "comutator", perPerson: "de persoană", oneWay: "un sens", notYet: "nu e adăugat",
+    noTimes: "Fără ore, fără preț, fără tarif",
+    comfort: "Economy Comfort (spațiu la picioare)", comfortOnly: "doar Standard și Flex", comfortPlus: "+%s confort",
+    returnFare: "Tarif de întoarcere, de persoană", notCollected: "necolectat", useFare: "folosește tariful",
+    departsAMS: "Plecare din AMS", provisional: "provizoriu", matchOut: "la fel ca dusul",
+    noDeparture: "nicio plecare după aterizare", tooLate: "prea târziu", reaches: "prinde zborul",
+    hotelTag: "noapte la hotel", noConnMorning: "nicio legătură dimineața",
+    fullFare: "tarif întreg", withDiscount: "cu reducere",
+    noGroundEditor: "Nu există opțiuni de sol pentru %s. Adaugă-le în blocul de date.",
+    dalLabel: "NS Flex Dal Voordeel", dalNote: "40% reducere la trenuri în afara orelor de vârf, abonamentul nu e inclus",
+    dirOut: "Dus", dirBack: "Întors", dateJoin: " – ",
+    night1: "noapte", nightN: "nopți", nightIn: "Noapte în %s",
+    estimated: "estimat", timeEstimated: "oră estimată", unverifiedPrice: "preț neverificat",
+    dalPrice: "preț Dal Voordeel", peakFare: "tarif întreg, oră de vârf",
+    totalWord: "Total", doorToDoor: "Ușă la ușă",
+    clean: "Nimic de semnalat pentru combinația asta.",
+    hotelField: "Hotel o noapte", defaultUnv: "implicit, neverificat",
+    busField: "Autobuz aeroport Eindhoven, un sens", notChecked: "neverificat",
+    thCombo: "Combinație", thTotal: "Total", thTime: "Durată", noConn: "fără legătură",
+    load: "încarcă", loaded: "încărcat",
+    checkTitle: "Rezervă la Schiphol", checkOk: "Confortabil. Trenul ajunge, iar zborul pleacă la %s după ce ai plecat din Groningen.",
+    checkTight: "Sub trei ore. Gândește-te la altă oră de zbor.",
+    foot1: "<b>Un pasager</b>, prețuri de persoană pe sens. Orele sunt locale: România e cu o oră înaintea Olandei. Avionul e linie întreruptă, trenul continuă, autobuzul punctat.",
+    foot2: "Tarifele, orarele și rutele FlixBus au fost culese manual la finalul lui noiembrie 2026. Verifică-le înainte de rezervare. Ce e marcat neverificat e provizoriu și se poate edita aici.",
+    sumTitle: "București – Groningen, 28–30 ianuarie 2027, 1 pasager",
+    sumOut: "DUS, joi 28 ian", sumBack: "ÎNTORS, sâm 30 ian",
+    sumNights: "%s nopți în %s", sumHotel: "%s hotel în %s, %s (estimat)", sumTbd: "(oră estimată)",
+    sumTotal: "Total %s / RON %s la 1 EUR = %s RON", sumDoor: "Ușă la ușă %s", sumWarn: "Avertismente:",
+    sumNote: "Prețuri de persoană, culese manual, verifică înainte de rezervare.",
+    wNoGround: "Nicio legătură de sol pentru %s", wNoGroundBody: "Aeroportul ăsta nu are încă opțiuni de sol în date.",
+    wNoConnOut: "Nicio legătură după aterizare", wNoConnOutBody: "%s nu mai are nicio plecare după ce aterizează zborul. Alege altă variantă de sol sau un zbor mai devreme.",
+    wNoBack: "Nicio variantă de întoarcere din %s", wNoBackBody: "Adaugă opțiuni de sol pentru aeroportul ăsta.",
+    wNoConnBack: "Nicio legătură nu ajunge la aeroport la timp", wNoConnBackBody: "Nimic din Groningen nu te duce la %s înainte de plecarea de %s. Picioarele de mai jos sunt cel mai aproape ce permite orarul. Mută zborul mai târziu sau pune o noapte lângă aeroport.",
+    wOvernight: "Noapte în %s obligatorie pe %s", wOvernightBody: "%s pleacă din %s la %s. Nicio legătură din Groningen nu ajunge la aeroport la timp în dimineața aia, așa că planul de mai sus te pune la hotel cu o noapte înainte.",
+    wTight: "Legătură strânsă la aeroport", wTightBody: "Trenul pleacă din Groningen cu %s înainte de zbor. Sub 3 ore e riscant cu bagaj de cală.",
+    wWizzEst: "Prețul Wizz fără pachet e o estimare", wWizzEstBody: "498 RON dus-întors vine din cele două tarife plus taxele de administrare. La banii ăștia Wizz dă doar geanta mică 40x30x20, așa că un bagaj de cabină costă în plus.",
+    wNoBag: "%s %s nu are bagaj de cală", wNoBagBody: "%s Două nopți încap în bagaj de mână dacă împachetezi puțin, altfel treci la tariful următor.",
+    wDalPeak: "Dal Voordeel nu se aplică la toate trenurile", wDalPeakBody: "Reducerea de 40% e doar în afara orelor de vârf, nu în zilele lucrătoare între 06:30 și 09:00 și între 16:00 și 18:30. %s tren din plan pleacă în intervalul ăla și e la tarif întreg.",
+    wDalSub: "Dal Voordeel cere abonament", wDalSubBody: "19,98 EUR pe drum presupune că abonamentul NS Flex e deja plătit. Taxa lunară nu e în total.",
+    wPlaceholders: "Unele cifre sunt provizorii", wPlaceholdersBody: "Neverificate încă: %s. Editează-le pe cele cu câmp mai jos.",
+    wHotelNote: "Nicio legătură de sol nu ajunge la aeroport la timp în dimineața aia, așa că noaptea se petrece aici.",
+    wizzFlight: "Zbor", wizzBundle: "pachet", wizzAdmin: "taxă admin", wizzNoBundle: "fără pachet"
+  }
+};
+let LANG = "en";
+function t(key, ...args) {
+  let v = (T[LANG] && T[LANG][key]) || T.en[key] || key;
+  for (const a of args) v = v.replace("%s", a);
+  return v;
+}
+/* data text: field_ro wins when it exists and the language is Romanian.
+   (Not named L: that global belongs to Leaflet.) */
+function loc(o, field) {
+  if (!o) return "";
+  if (LANG === "ro" && o[field + "_ro"]) return o[field + "_ro"];
+  return o[field] || "";
+}
+const LOCALE = () => LANG === "ro" ? "ro-RO" : "en-GB";
+const num = n => n.toLocaleString(LOCALE(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const eur = n => new Intl.NumberFormat(LOCALE(), { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+const ron = n => n.toLocaleString(LOCALE(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const MIN = 60000;
 
 function at(dateStr, timeStr, tz) {
@@ -1812,7 +2037,9 @@ function addDays(dateStr, n) {
 }
 function dayName(dateStr) {
   const [y, m, d] = dateStr.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  return new Date(Date.UTC(y, m - 1, d))
+    .toLocaleDateString(LOCALE(), { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })
+    .replace(/\./g, "").replace(",", "");
 }
 function durText(mins) {
   if (mins == null || isNaN(mins)) return "?";
@@ -1992,24 +2219,22 @@ function compute(sel) {
   const oFare = fareById(oF.carrier, sel.out.fare, "out");
   const oP = farePrice(oF.carrier, sel.out.fare, "out", sel);
   items.push({ kind: "flight", dir: "out", from: oF.dep.node, to: oF.arr.node, dep: oT.dep, arr: oT.arr,
-    title: oF.name, sub: oF.sub, fare: oFare.name, price: oP.eur, priceRon: oP.ron, ronNative: oF.carrier === "wizz",
-    note: oFare.desc });
+    title: oF.name, sub: loc(oF, "sub"), fare: oFare.name, price: oP.eur, priceRon: oP.ron, ronNative: oF.carrier === "wizz",
+    note: loc(oFare, "desc") });
 
   const oG = findGround("out", oF.arr.node, sel.out.ground);
   if (!oG) {
-    warnings.push({ sev: "stop", title: "No last mile for " + oF.arr.node,
-      body: "This airport has no ground options in the data yet." });
+    warnings.push({ sev: "stop", title: t("wNoGround", oF.arr.node), body: t("wNoGroundBody") });
   } else {
     const ch = chainAfter(oG.legs, oT.arr);
     if (!ch.ok) {
       infeasible = true;
-      warnings.push({ sev: "stop", title: "No connection after landing",
-        body: "The " + (ch.failedOn.operator || "next") + " has no departure left after your flight lands. Pick another last mile or an earlier flight." });
+      warnings.push({ sev: "stop", title: t("wNoConnOut"), body: t("wNoConnOutBody", ch.failedOn.operator || "") });
     } else {
       ch.legs.forEach(x => items.push({ kind: "ground", dir: "out", from: x.leg.from, to: x.leg.to, dep: x.dep, arr: x.arr,
-        mode: x.leg.mode, title: x.leg.operator || "", price: groundPrice(x.leg, x.dep, sel).eur,
+        mode: x.leg.mode, title: loc(x.leg, "operator"), price: groundPrice(x.leg, x.dep, sel).eur,
         priceRon: groundPrice(x.leg, x.dep, sel).ron, dal: dalApplied(x.leg, x.dep, sel),
-        note: x.leg.note, tbd: x.tbd, unverified: x.leg.unverified, key: x.leg.key }));
+        note: loc(x.leg, "note"), tbd: x.tbd, unverified: x.leg.unverified, key: x.leg.key }));
     }
   }
 
@@ -2023,58 +2248,51 @@ function compute(sel) {
     const gOpt = findGround("back", bF.dep.node, sel.back.ground);
 
     if (!gOpt) {
-      warnings.push({ sev: "stop", title: "No way back from " + bF.dep.node, body: "Add ground options for this airport." });
+      warnings.push({ sev: "stop", title: t("wNoBack", bF.dep.node), body: t("wNoBackBody") });
     } else {
       const rp = planReturn(gOpt, bT.dep, DATA.assumptions.airportBuffer);
       if (!rp.ok) {
         infeasible = true;
-        warnings.push({ sev: "stop", title: "No connection reaches the airport in time",
-          body: "Nothing from Groningen gets you to " + DATA.nodes[bF.dep.node].short + " before a " + fmtT(bT.dep, 1) +
-                " departure. The legs below are the closest the timetable gets. Move the flight later or plan a night near the airport." });
+        warnings.push({ sev: "stop", title: t("wNoConnBack"), body: t("wNoConnBackBody", DATA.nodes[bF.dep.node].short, fmtT(bT.dep, 1)) });
       }
       {
         const headLegs = rp.overnight ? rp.legs.slice(0, rp.split) : rp.legs;
         headLegs.forEach(x => items.push({ kind: "ground", dir: "back", from: x.leg.from, to: x.leg.to, dep: x.dep, arr: x.arr,
-          mode: x.leg.mode, title: x.leg.operator || "", price: groundPrice(x.leg, x.dep, sel).eur,
+          mode: x.leg.mode, title: loc(x.leg, "operator"), price: groundPrice(x.leg, x.dep, sel).eur,
           priceRon: groundPrice(x.leg, x.dep, sel).ron, dal: dalApplied(x.leg, x.dep, sel),
-          note: x.leg.note, tbd: x.tbd, unverified: x.leg.unverified, key: x.leg.key }));
+          note: loc(x.leg, "note"), tbd: x.tbd, unverified: x.leg.unverified, key: x.leg.key }));
         backStart = rp.dep;
 
         if (rp.overnight) {
           const night = rp.nightDate;
           items.push({ kind: "hotel", dir: "back", city: rp.city, night, price: sel.hotel,
-            title: "Night in " + (DATA.nodes[rp.city] ? DATA.nodes[rp.city].city : rp.city),
-            note: "The 09:25 departure cannot be reached from Groningen on the day. Sleep near the airport instead." });
+            title: t("nightIn", DATA.nodes[rp.city] ? loc(DATA.nodes[rp.city], "city") : rp.city), note: t("wHotelNote") });
           const tailLegs = rp.legs.slice(rp.split);
           tailLegs.forEach(x => items.push({ kind: "ground", dir: "back", from: x.leg.from, to: x.leg.to, dep: x.dep, arr: x.arr,
-            mode: x.leg.mode, title: x.leg.operator || "", price: groundPrice(x.leg, x.dep, sel).eur,
+            mode: x.leg.mode, title: loc(x.leg, "operator"), price: groundPrice(x.leg, x.dep, sel).eur,
             priceRon: groundPrice(x.leg, x.dep, sel).ron, dal: dalApplied(x.leg, x.dep, sel),
-            note: x.leg.note, tbd: x.tbd, unverified: x.leg.unverified, key: x.leg.key }));
+            note: loc(x.leg, "note"), tbd: x.tbd, unverified: x.leg.unverified, key: x.leg.key }));
         }
 
         // the three hour rule, stated either way
         const gap = rp.dep ? Math.round((bT.dep - rp.dep) / MIN) : 0;
         if (rp.overnight) {
           const cityName = DATA.nodes[rp.city] ? DATA.nodes[rp.city].city : rp.city;
-          warnings.push({ sev: "warn", title: "Overnight in " + cityName + " on " + dayName(rp.nightDate) + " required",
-            body: bF.name + " leaves " + DATA.nodes[bF.dep.node].short + " at " + fmtT(bT.dep, 1) +
-                  ". No ground connection from Groningen reaches the airport in time that morning, so the plan above puts you in a hotel the night before.",
-            hotelInput: true });
+          warnings.push({ sev: "warn", title: t("wOvernight", cityName, dayName(rp.nightDate)),
+            body: t("wOvernightBody", bF.name, DATA.nodes[bF.dep.node].short, fmtT(bT.dep, 1)), hotelInput: true });
         } else if (gap < 180) {
-          warnings.push({ sev: "warn", title: "Tight connection at the airport",
-            body: "The train leaves Groningen " + durText(gap) + " before the flight. Under 3 hours is risky with a checked bag." });
+          warnings.push({ sev: "warn", title: t("wTight"), body: t("wTightBody", durText(gap)) });
         }
 
         if (rp.ok && !rp.overnight && bF.dep.node === "AMS") {
-          items.push({ kind: "check", dir: "back", minutes: gap, title: "Buffer at Schiphol",
-            note: gap >= 180 ? "Comfortable. Train arrives, then the flight leaves " + durText(gap) + " after you left Groningen."
-                             : "Below three hours. Reconsider the flight time." });
+          items.push({ kind: "check", dir: "back", minutes: gap, title: t("checkTitle"),
+            note: gap >= 180 ? t("checkOk", durText(gap)) : t("checkTight") });
         }
       }
     }
     items.push({ kind: "flight", dir: "back", from: bF.dep.node, to: bF.arr.node, dep: bT.dep, arr: bT.arr,
-      title: bF.name, sub: bF.sub + (bT.derived ? ", times provisional" : ""), fare: bFare.name,
-      price: bP.eur, priceRon: bP.ron, ronNative: bF.carrier === "wizz", note: bF.note });
+      title: bF.name, sub: loc(bF, "sub") + (bT.derived ? " · " + t("provisional") : ""), fare: bFare.name,
+      price: bP.eur, priceRon: bP.ron, ronNative: bF.carrier === "wizz", note: loc(bF, "note") });
   }
 
   // ---- the stay in Groningen
@@ -2097,27 +2315,21 @@ function compute(sel) {
 
   // ---- standing warnings
   if (oF.carrier === "wizz" && sel.out.fare === "nobundle") {
-    warnings.push({ sev: "warn", title: "Wizz price without the bundle is an estimate",
-      body: "RON 498 round trip comes from the two fares plus admin fees. Wizz only sells the free 40x30x20 bag at that price, so a cabin bag costs extra." });
+    warnings.push({ sev: "warn", title: t("wWizzEst"), body: t("wWizzEstBody") });
   }
   if (oFare.noChecked) {
-    warnings.push({ sev: "info", title: oF.name + " " + oFare.name + " has no checked bag",
-      body: oFare.desc + " Two nights fit in hand luggage if you pack small, otherwise take the next fare up." });
+    warnings.push({ sev: "info", title: t("wNoBag", oF.name, oFare.name), body: t("wNoBagBody", loc(oFare, "desc")) });
   }
   if (sel.dal) {
     const peakLegs = items.filter(i => i.kind === "ground" && i.mode === "train" && i.dal === false);
     if (peakLegs.length) {
-      warnings.push({ sev: "info", title: "Dal Voordeel does not apply on every train",
-        body: "The 40% discount runs off-peak only, not on weekdays 06:30 to 09:00 and 16:00 to 18:30. " +
-              peakLegs.length + " train in this plan departs inside those hours and is priced at full fare." });
+      warnings.push({ sev: "info", title: t("wDalPeak"), body: t("wDalPeakBody", peakLegs.length) });
     }
-    warnings.push({ sev: "info", title: "Dal Voordeel needs a subscription",
-      body: "EUR 19.98 per trip assumes the NS Flex subscription is already paid for. The monthly fee is not in the total." });
+    warnings.push({ sev: "info", title: t("wDalSub"), body: t("wDalSubBody") });
   }
   const unv = [...new Set(items.filter(i => i.unverified || i.tbd).map(i => i.title || i.kind))];
   if (unv.length) {
-    warnings.push({ sev: "info", title: "Some numbers are placeholders",
-      body: "Not checked yet: " + unv.join(", ") + ". Edit the ones with an input below.",
+    warnings.push({ sev: "info", title: t("wPlaceholders"), body: t("wPlaceholdersBody", unv.join(", ")),
       busInput: items.some(i => i.key === "busFare") });
   }
   const order = { stop: 0, warn: 1, info: 2 };
@@ -2191,6 +2403,8 @@ function loadTiles(idx) {
 }
 
 /* ---------- render: editor ---------- */
+function plural(n, one, many) { return n === 1 ? t(one) : t(many); }
+
 function renderEditor() {
   const dir = state.dir, sel = state.sel;
   const f = findFlight(dir, sel[dir].flight);
@@ -2198,88 +2412,88 @@ function renderEditor() {
   const airport = dir === "out" ? f.arr.node : f.dep.node;
   const grounds = ROOT(dir).ground[airport] || [];
   const html = [];
+  const nFlights = ROOT(dir).flights.filter(x => !x.disabled).length;
 
   /* step 1: flight */
-  html.push(`<div class="step"><div class="step-head"><span class="step-n">01</span><h3>${dir === "out" ? "Flight from Bucharest" : "Flight back"}</h3>
-    <span class="step-meta">${ROOT(dir).flights.filter(x => !x.disabled).length} flight${ROOT(dir).flights.filter(x => !x.disabled).length === 1 ? "" : "s"}</span></div><div class="opts" role="radiogroup" aria-label="Flight">`);
+  html.push(`<div class="step"><div class="step-head"><span class="step-n">01</span><h3>${dir === "out" ? t("step1out") : t("step1back")}</h3>
+    <span class="step-meta">${nFlights} ${plural(nFlights, "flight1", "flightN")}</span></div><div class="opts" role="radiogroup" aria-label="${dir === "out" ? t("step1out") : t("step1back")}">`);
 
   ROOT(dir).flights.forEach(x => {
     const dis = !!x.disabled;
     const on = !dis && x.id === f.id;
     let detail = "", price = "";
     if (!dis) {
-      const t = flightTimes(x, sel, dir);
-      const p = farePrice(x.carrier, sel[dir].fare, dir, sel);
-      const mins = Math.round((t.arr - t.dep) / MIN);
+      const tm = flightTimes(x, sel, dir);
+      const pr = farePrice(x.carrier, sel[dir].fare, dir, sel);
+      const mins = Math.round((tm.arr - tm.dep) / MIN);
       const dNode = x.dep.node, aNode = x.arr.node;
-      detail = `${fmtT(t.dep, nodeTz(dNode))} ${dNode} → ${fmtT(t.arr, nodeTz(aNode))} ${aNode} <em>/${durText(mins)}</em>`;
-      price = x.carrier === "wizz" ? `${eur(p.eur)}<small>RON ${ron(p.ron)}</small>` : `${eur(p.eur)}<small>per person</small>`;
+      detail = `${fmtT(tm.dep, nodeTz(dNode))} ${dNode} → ${fmtT(tm.arr, nodeTz(aNode))} ${aNode} <em>/${durText(mins)}</em>`;
+      price = x.carrier === "wizz" ? `${eur(pr.eur)}<small>RON ${ron(pr.ron)}</small>` : `${eur(pr.eur)}<small>${t("perPerson")}</small>`;
     } else {
-      detail = "No times, no price, no fare";
-      price = `<span class="chip them">not yet added</span>`;
+      detail = t("noTimes");
+      price = `<span class="chip them">${t("notYet")}</span>`;
     }
     html.push(`<label class="opt ${on ? "sel" : ""} ${dis ? "off" : ""}">
       <input type="radio" name="flight-${dir}" value="${x.id}" ${on ? "checked" : ""} ${dis ? "disabled" : ""}>
-      <span><span class="opt-title">${x.name} <span class="opt-sub">${x.sub}</span></span>
+      <span><span class="opt-title">${x.name} <span class="opt-sub">${loc(x, "sub")}</span></span>
         <span class="opt-detail">${detail}</span>
-        ${x.note ? `<span class="opt-note">${x.note}</span>` : ""}</span>
+        ${x.note ? `<span class="opt-note">${loc(x, "note")}</span>` : ""}</span>
       <span class="opt-price">${price}</span></label>`);
   });
   html.push(`</div></div>`);
 
   /* step 2: fare */
   const fareSet = fareList(carrier, dir);
-  if (!fareSet.some(f => f.id === sel[dir].fare)) sel[dir].fare = fareSet[0].id;
-  html.push(`<div class="step"><div class="step-head"><span class="step-n">02</span><h3>${carrier === "wizz" ? "Baggage bundle" : "Fare and baggage"}</h3>
-    <span class="step-meta">${carrier === "wizz" ? "toggle" : fareSet.length + " fares"}</span></div><div class="opts" role="radiogroup" aria-label="Fare">`);
+  if (!fareSet.some(x => x.id === sel[dir].fare)) sel[dir].fare = fareSet[0].id;
+  html.push(`<div class="step"><div class="step-head"><span class="step-n">02</span><h3>${carrier === "wizz" ? t("step2bundle") : t("step2fare")}</h3>
+    <span class="step-meta">${carrier === "wizz" ? t("toggle") : fareSet.length + " " + plural(fareSet.length, "fare1", "fareN")}</span></div><div class="opts" role="radiogroup" aria-label="${t("step2fare")}">`);
 
   if (carrier !== "wizz") {
     fareSet.forEach(fr => {
       const on = fr.id === sel[dir].fare;
-      const p = farePrice(carrier, fr.id, dir, { ...sel, [dir]: { ...sel[dir], comfort: false } });
       html.push(`<label class="opt ${on ? "sel" : ""}">
         <input type="radio" name="fare-${dir}" value="${fr.id}" ${on ? "checked" : ""}>
-        <span><span class="opt-title">${fr.name}</span><span class="opt-note">${fr.desc}</span></span>
-        <span class="opt-price">${eur(fr.price)}${fr.comfort ? `<small>+${eur(DATA.carriers.klm.comfortPrice)} comfort</small>` : `<small>one way</small>`}</span></label>`);
+        <span><span class="opt-title">${fr.name}</span><span class="opt-note">${loc(fr, "desc")}</span></span>
+        <span class="opt-price">${eur(fr.price)}${fr.comfort ? `<small>${t("comfortPlus", eur(DATA.carriers.klm.comfortPrice))}</small>` : `<small>${t("oneWay")}</small>`}</span></label>`);
     });
     const cur = fareById(carrier, sel[dir].fare, dir);
     if (carrier === "klm") {
       const hasComfort = !!cur.comfort;
       html.push(`<label class="fare-extra ${hasComfort ? "" : "dis"}">
         <input type="checkbox" id="comfort" ${sel[dir].comfort && hasComfort ? "checked" : ""} ${hasComfort ? "" : "disabled"}>
-        Economy Comfort (extra legroom)
-        <span class="fare-extra-price">${hasComfort ? "+" + eur(DATA.carriers.klm.comfortPrice) : "Standard and Flex only"}</span></label>`);
+        ${t("comfort")}
+        <span class="fare-extra-price">${hasComfort ? "+" + eur(DATA.carriers.klm.comfortPrice) : t("comfortOnly")}</span></label>`);
     }
     if (dir === "back" && f.editable) {
-      html.push(`<div class="field">Return fare per person
+      html.push(`<div class="field">${t("returnFare")}
         <input type="number" id="backPrice" step="0.01" min="0" value="${(sel.back.price != null ? sel.back.price : cur.price).toFixed(2)}" inputmode="decimal"> EUR
-        <span class="tbd">not collected</span>
-        ${sel.back.price != null ? `<button class="linkbtn" id="resetPrice">use fare price</button>` : ""}</div>`);
-      html.push(`<div class="field">Departs AMS
+        <span class="tbd">${t("notCollected")}</span>
+        ${sel.back.price != null ? `<button class="linkbtn" id="resetPrice">${t("useFare")}</button>` : ""}</div>`);
+      html.push(`<div class="field">${t("departsAMS")}
         <input type="time" id="backDep" value="${sel.back.dep || smartBackDep(sel)}">
-        <span class="tbd">provisional</span>
-        <button class="linkbtn" id="resetDep">match outbound</button></div>`);
+        <span class="tbd">${t("provisional")}</span>
+        <button class="linkbtn" id="resetDep">${t("matchOut")}</button></div>`);
     }
   } else {
     DATA.carriers.wizz.fares.forEach(fr => {
       const on = fr.id === sel[dir].fare;
-      const p = farePrice("wizz", fr.id, dir, sel);
+      const pr = farePrice("wizz", fr.id, dir, sel);
       const b = DATA.carriers.wizz.bundle[dir === "out" ? "out" : "back"];
-      const html2 = fr.id === "bundle"
-        ? `Flight RON ${ron(b.flightRON)} + bundle RON ${ron(b.bundleRON)} + admin RON ${ron(b.adminRON)}`
-        : `Flight RON ${ron(b.flightRON)} + admin RON ${ron(b.adminRON)}, no bundle`;
+      const line = fr.id === "bundle"
+        ? `${t("wizzFlight")} RON ${ron(b.flightRON)} + ${t("wizzBundle")} RON ${ron(b.bundleRON)} + ${t("wizzAdmin")} RON ${ron(b.adminRON)}`
+        : `${t("wizzFlight")} RON ${ron(b.flightRON)} + ${t("wizzAdmin")} RON ${ron(b.adminRON)}, ${t("wizzNoBundle")}`;
       html.push(`<label class="opt ${on ? "sel" : ""}">
         <input type="radio" name="fare-${dir}" value="${fr.id}" ${on ? "checked" : ""}>
-        <span><span class="opt-title">${fr.name}</span><span class="opt-detail">${html2}</span>
-          <span class="opt-note">${fr.desc}</span></span>
-        <span class="opt-price">${eur(p.eur)}<small>RON ${ron(p.ron)}</small></span></label>`);
+        <span><span class="opt-title">${loc(fr, "name")}</span><span class="opt-detail">${line}</span>
+          <span class="opt-note">${loc(fr, "desc")}</span></span>
+        <span class="opt-price">${eur(pr.eur)}<small>RON ${ron(pr.ron)}</small></span></label>`);
     });
   }
   html.push(`</div></div>`);
 
   /* step 3: last mile */
-  html.push(`<div class="step"><div class="step-head"><span class="step-n">03</span><h3>${dir === "out" ? "Airport to Groningen" : "Groningen to the airport"}</h3>
-    <span class="step-meta">${airport} · ${grounds.length} option${grounds.length === 1 ? "" : "s"}</span></div><div class="opts" role="radiogroup" aria-label="Last mile">`);
+  html.push(`<div class="step"><div class="step-head"><span class="step-n">03</span><h3>${dir === "out" ? t("step3out") : t("step3back")}</h3>
+    <span class="step-meta">${airport} · ${grounds.length} ${plural(grounds.length, "option1", "optionN")}</span></div><div class="opts" role="radiogroup" aria-label="${t("step3out")}">`);
 
   grounds.forEach(g => {
     const on = g.id === sel[dir].ground;
@@ -2291,30 +2505,30 @@ function renderEditor() {
         const arr = fmtT(ch.arr, nodeTz(g.legs[g.legs.length - 1].to));
         const mins = Math.round((ch.arr - ch.legs[0].dep) / MIN);
         detail = `${dep} ${g.legs[0].from} → ${arr} ${g.legs[g.legs.length - 1].to} <em>/${durText(mins)}</em>`;
-      } else { detail = "no departure left after landing"; tag = `<span class="chip bad">too late</span>`; }
+      } else { detail = t("noDeparture"); tag = `<span class="chip bad">${t("tooLate")}</span>`; }
     } else {
       const rp = planReturn(g, flightTimes(f, sel, "back").dep, DATA.assumptions.airportBuffer);
       if (rp.ok && !rp.overnight) {
         detail = `${fmtT(rp.dep, 1)} GRQ → ${fmtT(rp.arr, 1)} ${f.dep.node} <em>/${durText(Math.round((rp.arr - rp.dep) / MIN))}</em>`;
-        tag = `<span class="chip good">reaches flight</span>`;
+        tag = `<span class="chip good">${t("reaches")}</span>`;
       } else if (rp.ok && rp.overnight) {
         detail = `${dayName(rp.nightDate)} ${fmtT(rp.dep, 1)} GRQ → hotel → ${fmtT(rp.arr, 1)} ${f.dep.node}`;
-        tag = `<span class="chip warn">hotel night</span>`;
-      } else { detail = "no connection that morning"; tag = `<span class="chip bad">too late</span>`; }
+        tag = `<span class="chip warn">${t("hotelTag")}</span>`;
+      } else { detail = t("noConnMorning"); tag = `<span class="chip bad">${t("tooLate")}</span>`; }
     }
-    const p = g.legs.reduce((a, l) => a + (l.priceRON ? l.priceRON / sel.ronPerEur : l.price), 0);
+    const pr = g.legs.reduce((a, l) => a + (l.priceRON ? l.priceRON / sel.ronPerEur : l.price), 0);
     html.push(`<label class="opt ${on ? "sel" : ""}">
       <input type="radio" name="ground-${dir}" value="${g.id}" ${on ? "checked" : ""}>
-      <span><span class="opt-title">${g.name} <span class="opt-sub">${g.sub}</span></span>
+      <span><span class="opt-title">${loc(g, "name")} <span class="opt-sub">${loc(g, "sub")}</span></span>
         <span class="opt-detail">${detail}</span>
-        ${g.note ? `<span class="opt-note">${g.note}</span>` : ""}
+        ${g.note ? `<span class="opt-note">${loc(g, "note")}</span>` : ""}
         ${tag ? `<span style="display:inline-block;margin-top:6px">${tag}</span>` : ""}</span>
-      <span class="opt-price">${eur(p)}<small>${sel.dal ? "with discount" : "full fare"}</small></span></label>`);
+      <span class="opt-price">${eur(pr)}<small>${sel.dal ? t("withDiscount") : t("fullFare")}</small></span></label>`);
   });
-  if (!grounds.length) html.push(`<p class="leg-note">No ground options for ${airport} yet. Add them in DATA.${dir}.ground.${airport}.</p>`);
+  if (!grounds.length) html.push(`<p class="leg-note">${t("noGroundEditor", airport)}</p>`);
   html.push(`</div>`);
   html.push(`<label class="switch dal-switch"><input type="checkbox" id="dal" ${sel.dal ? "checked" : ""}>
-    <span>NS Flex Dal Voordeel<em>40% off trains outside peak hours, subscription not included</em></span></label>`);
+    <span>${t("dalLabel")}<em>${t("dalNote")}</em></span></label>`);
   html.push(`</div>`);
 
   $("#editor").innerHTML = html.join("");
@@ -2368,50 +2582,48 @@ function renderTimeline(plan) {
     if (s && s < spans[it.dir].s) spans[it.dir].s = s;
     if (e && e > spans[it.dir].e) spans[it.dir].e = e;
   });
-  plan.items.forEach((it, i) => {
+  plan.items.forEach(it => {
     if (it.dir !== seenDir && it.dir !== "stay") {
       seenDir = it.dir;
       const sp = spans[it.dir] || { s: new Date(), e: new Date() };
       const d1 = dayName(localDay(sp.s, 1)), d2 = dayName(localDay(sp.e, 1));
-      const label = d1 === d2 ? d1 : d1 + " to " + d2;
-      html.push(`<div class="dirsep"><b>${it.dir === "out" ? "Outbound" : "Return"}</b> <span>${label}</span><span class="ln"></span></div>`);
+      const label = d1 === d2 ? d1 : d1 + t("dateJoin") + d2;
+      html.push(`<div class="dirsep"><b>${it.dir === "out" ? t("dirOut") : t("dirBack")}</b> <span>${label}</span><span class="ln"></span></div>`);
     }
-    const tz = it.dir === "back" ? (it.to === "OTP" ? 2 : 1) : (it.from === "OTP" ? 2 : 1);
     if (it.kind === "stay") {
       html.push(`<li class="leg stay"><span class="dot">${ico("bed", 11)}</span>
-        <div class="leg-head"><span class="leg-time">${it.nights} ${it.nights === 1 ? "night" : "nights"}</span></div>
+        <div class="leg-head"><span class="leg-time">${it.nights} ${plural(it.nights, "night1", "nightN")}</span></div>
         <div class="leg-title">${it.city}</div>
-        <div class="leg-meta">${dayName(localDay(it.from, 1))} to ${dayName(localDay(it.to, 1))}</div></li>`);
+        <div class="leg-meta">${dayName(localDay(it.from, 1))}${t("dateJoin")}${dayName(localDay(it.to, 1))}</div></li>`);
       return;
     }
     if (it.kind === "check") {
       html.push(`<li class="leg"><span class="dot">${ico("check", 10)}</span>
-        <div class="leg-head"><span class="leg-title">${it.title}</span></div>
-        <div class="leg-note">${it.note}</div></li>`);
+        <div class="leg-head"><span class="leg-title">${t("checkTitle")}</span></div>
+        <div class="leg-note">${loc(it, "note")}</div></li>`);
       return;
     }
     if (it.kind === "hotel") {
-      const city = DATA.nodes[it.city] ? DATA.nodes[it.city].city : it.city;
+      const city = DATA.nodes[it.city] ? loc(DATA.nodes[it.city], "city") : it.city;
       html.push(`<li class="leg back stay"><span class="dot">${ico("bed", 11)}</span>
         <div class="leg-head"><span class="leg-time">${dayName(it.night)}</span>
-          <span class="leg-price">${eur(it.price)}<span class="ron">estimated</span></span></div>
-        <div class="leg-title">Night in ${city}</div>
-        <div class="leg-note">${it.note}</div></li>`);
+          <span class="leg-price">${eur(it.price)}<span class="ron">${t("estimated")}</span></span></div>
+        <div class="leg-title">${t("nightIn", city)}</div>
+        <div class="leg-note">${loc(it, "note")}</div></li>`);
       return;
     }
     const aTz = nodeTz(it.from), bTz = nodeTz(it.to);
     const dayMark = localDay(it.dep, aTz) !== localDay(it.arr, bTz) ? " <em>+1d</em>" : "";
     const priceBlock = typeof it.price === "number"
       ? `<span class="leg-price">${eur(it.price)}${it.ronNative ? `<span class="ron">RON ${ron(it.priceRon)}</span>` : ""}</span>` : "";
-    const modeIcon = ico(it.kind === "hotel" ? "bed" : it.mode || "plane", 12);
+    const modeIcon = ico(it.mode || "plane", 12);
     const meta = [];
     meta.push("<em>" + (it.kind === "flight" ? it.fare : durText(Math.round((it.arr - it.dep) / MIN))) + "</em>");
     if (it.kind === "flight" && it.sub) meta.push(it.sub);
-    if (it.tbd) meta.push("time estimated");
-    if (it.kind === "hotel") meta.push("one night, estimated cost");
-    if (it.unverified) meta.push('<em>unverified price</em>');
-    if (it.dal === true) meta.push('<em>Dal Voordeel price</em>');
-    if (it.dal === false && it.mode === "train" && state.sel.dal) meta.push('<em>full fare, peak hours</em>');
+    if (it.tbd) meta.push(t("timeEstimated"));
+    if (it.unverified) meta.push('<em>' + t("unverifiedPrice") + '</em>');
+    if (it.dal === true) meta.push('<em>' + t("dalPrice") + '</em>');
+    if (it.dal === false && it.mode === "train" && state.sel.dal) meta.push('<em>' + t("peakFare") + '</em>');
 
     html.push(`<li class="leg ${it.dir === "back" ? "back" : ""}">
       <span class="dot">${modeIcon}</span>
@@ -2419,16 +2631,15 @@ function renderTimeline(plan) {
         <span class="leg-time">${fmtT(it.dep, aTz)} <span class="arr">${fmtT(it.arr, bTz)}${dayMark}</span></span>
         ${priceBlock}
       </div>
-      <div class="leg-title">${DATA.nodes[it.from].short} ${DATA.nodes[it.from].city} → ${DATA.nodes[it.to].short} ${DATA.nodes[it.to].city}</div>
+      <div class="leg-title">${DATA.nodes[it.from].short} ${loc(DATA.nodes[it.from], "city")} → ${DATA.nodes[it.to].short} ${loc(DATA.nodes[it.to], "city")}</div>
       <div class="leg-meta">${it.title ? it.title + " · " : ""}${meta.join(" · ")}</div>
-      ${it.note ? `<div class="leg-note">${it.note}</div>` : ""}
+      ${it.note ? `<div class="leg-note">${loc(it, "note")}</div>` : ""}
     </li>`);
   });
 
-  const p = plan;
   html.push(`<div class="sum-row">
-    <span>Total <b>${eur(p.totalEUR)}</b> · RON <b>${ron(p.totalEUR * state.sel.ronPerEur)}</b></span>
-    <span>Door to door <b>${durText(p.totalMin)}</b></span></div>`);
+    <span>${t("totalWord")} <b>${eur(plan.totalEUR)}</b> · RON <b>${ron(plan.totalEUR * state.sel.ronPerEur)}</b></span>
+    <span>${t("doorToDoor")} <b>${durText(plan.totalMin)}</b></span></div>`);
   $("#timeline").innerHTML = html.join("");
   $("#timeline").querySelectorAll(".leg").forEach((el, i) => el.style.setProperty("--i", i));
 }
@@ -2436,21 +2647,20 @@ function renderTimeline(plan) {
 /* ---------- render: warnings ---------- */
 function renderWarnings(plan) {
   const host = $("#warnings");
-  const list = plan.warnings;
-  if (!list.length) {
-    host.innerHTML = `<div class="cleanline">${ico("check", 13)} Nothing flagged for this combination.</div>`;
+  if (!plan.warnings.length) {
+    host.innerHTML = `<div class="cleanline">${ico("check", 13)} ${t("clean")}</div>`;
     return;
   }
-  host.innerHTML = list.map((w, i) => `
+  host.innerHTML = plan.warnings.map(w => `
     <div class="warn ${w.sev === "stop" ? "stop" : w.sev === "warn" ? "warn-lvl" : "info"}">
       <span class="wi">${ico(w.sev === "stop" ? "alert" : w.sev === "warn" ? "alert" : "info", 15)}</span>
       <div><h4>${w.title}</h4><p>${w.body}</p>
-      ${w.hotelInput ? `<div class="field">Hotel for one night
+      ${w.hotelInput ? `<div class="field">${t("hotelField")}
         <input type="number" id="hotel" step="1" min="0" value="${state.sel.hotel}" inputmode="decimal"> EUR
-        <span class="tbd">default, unverified</span></div>` : ""}
-      ${w.busInput ? `<div class="field">Airport bus Eindhoven, single
+        <span class="tbd">${t("defaultUnv")}</span></div>` : ""}
+      ${w.busInput ? `<div class="field">${t("busField")}
         <input type="number" id="busFare" step="0.05" min="0" value="${state.sel.busFare.toFixed(2)}" inputmode="decimal"> EUR
-        <span class="tbd">not checked</span></div>` : ""}
+        <span class="tbd">${t("notChecked")}</span></div>` : ""}
       </div></div>`).join("");
   const h = $("#hotel");
   if (h) h.addEventListener("input", () => { state.sel.hotel = parseFloat(h.value) || 0; refresh(false, true); });
@@ -2468,12 +2678,12 @@ function renderCompare() {
     const cur = state.sel.out.flight === ps.out.flight && state.sel.out.fare === ps.out.fare &&
                 state.sel.out.ground === ps.out.ground && state.sel.back.ground === ps.back.ground;
     return `<tr data-preset="${ps.id}" class="${cur ? "cur" : ""}">
-      <td><div class="tname">${ps.label}<span>${ps.sub}</span></div></td>
-      <td class="num">${p.infeasible ? '<span class="chip bad">no connection</span>' : eur(p.totalEUR)}</td>
+      <td><div class="tname">${loc(ps, "label")}<span>${loc(ps, "sub")}</span></div></td>
+      <td class="num">${p.infeasible ? `<span class="chip bad">${t("noConn")}</span>` : eur(p.totalEUR)}</td>
       <td class="num">${p.infeasible ? "\u2014" : durText(p.totalMin)}</td>
-      <td class="act"><button class="usebtn" data-use="${ps.id}">${cur ? "loaded" : "load"}</button></td></tr>`;
+      <td class="act"><button class="usebtn" data-use="${ps.id}">${cur ? t("loaded") : t("load")}</button></td></tr>`;
   }).join("");
-  $("#compare").innerHTML = `<thead><tr><th>Combination</th><th>Total</th><th>Time</th><th></th></tr></thead><tbody>${rows}</tbody>`;
+  $("#compare").innerHTML = `<thead><tr><th>${t("thCombo")}</th><th>${t("thTotal")}</th><th>${t("thTime")}</th><th></th></tr></thead><tbody>${rows}</tbody>`;
   document.querySelectorAll("[data-use]").forEach(b => b.addEventListener("click", () => {
     const ps = DATA.presets.find(x => x.id === b.dataset.use);
     state.sel.roundTrip = true;
@@ -2582,7 +2792,7 @@ function refresh(animate, skipWarnings) {
   const plan = compute(sel);
   lastPlan = plan;
 
-  $("#fEur").textContent = (plan.infeasible ? "\u2248 " : "") + plan.totalEUR.toFixed(2);
+  $("#fEur").textContent = (plan.infeasible ? "\u2248 " : "") + num(plan.totalEUR);
   $("#fRon").textContent = (plan.infeasible ? "\u2248 " : "") + ron(plan.totalEUR * sel.ronPerEur);
   $("#fDur").textContent = durText(plan.totalMin);
   $("#fWarn").textContent = plan.warnings.length;
@@ -2610,26 +2820,35 @@ function refresh(animate, skipWarnings) {
 /* ---------- summary text ---------- */
 function summaryText() {
   const p = lastPlan, sel = state.sel;
-  const L = [];
-  L.push(`Bucharest to Groningen, 28 to 30 January 2027, 1 passenger`);
+  const out = [];
+  out.push(t("sumTitle"));
   let dirNow = null;
   p.items.forEach(it => {
-    if (it.dir !== dirNow && it.dir !== "stay") { dirNow = it.dir; L.push(""); L.push(it.dir === "out" ? "OUTBOUND, Thu 28 Jan" : "RETURN, Sat 30 Jan"); }
-    if (it.kind === "stay") { L.push(`  ${it.nights} nights in ${it.city}`); return; }
+    if (it.dir !== dirNow && it.dir !== "stay") {
+      dirNow = it.dir;
+      out.push("");
+      out.push(it.dir === "out" ? t("sumOut") : t("sumBack"));
+    }
+    if (it.kind === "stay") { out.push("  " + t("sumNights", it.nights, it.city)); return; }
     if (it.kind === "check") return;
-    if (it.kind === "hotel") { L.push(`  ${it.night}  hotel in ${DATA.nodes[it.city] ? DATA.nodes[it.city].city : it.city}, ${eur(it.price)} (estimated)`); return; }
+    if (it.kind === "hotel") {
+      out.push("  " + t("sumHotel", it.night, DATA.nodes[it.city] ? loc(DATA.nodes[it.city], "city") : it.city, eur(it.price)));
+      return;
+    }
     const a = nodeTz(it.from), b = nodeTz(it.to);
-    L.push(`  ${fmtT(it.dep, a)} ${it.from} -> ${fmtT(it.arr, b)} ${it.to}  ${it.title || it.mode}  ${eur(it.price)}${it.tbd ? "  (time estimated)" : ""}`);
+    out.push(`  ${fmtT(it.dep, a)} ${it.from} -> ${fmtT(it.arr, b)} ${it.to}  ${it.title || it.mode}  ${eur(it.price)}${it.tbd ? "  " + t("sumTbd") : ""}`);
   });
-  L.push("");
-  L.push(`Total ${eur(p.totalEUR)} / RON ${ron(p.totalEUR * sel.ronPerEur)} at 1 EUR = ${Number(sel.ronPerEur).toFixed(2)} RON`);
-  L.push(`Door to door ${durText(p.totalMin)}`);
+  out.push("");
+  out.push(t("sumTotal", eur(p.totalEUR), ron(p.totalEUR * sel.ronPerEur), ron(sel.ronPerEur)));
+  out.push(t("sumDoor", durText(p.totalMin)));
   if (p.warnings.length) {
-    L.push(""); L.push("Warnings:");
-    p.warnings.forEach(w => L.push(`  - ${w.title}. ${w.body.replace(/<[^>]+>/g, "")}`));
+    out.push("");
+    out.push(t("sumWarn"));
+    p.warnings.forEach(w => out.push(`  - ${w.title}. ${w.body.replace(/<[^>]+>/g, "")}`));
   }
-  L.push(""); L.push("Prices per person, collected by hand, re-check before booking.");
-  return L.join("\n");
+  out.push("");
+  out.push(t("sumNote"));
+  return out.join("\n");
 }
 async function copySummary() {
   const txt = summaryText();
@@ -2641,19 +2860,38 @@ async function copySummary() {
     document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
   }
   const b = $("#copy"), l = $("#copyLabel");
-  b.classList.add("done"); l.textContent = "Copied";
-  setTimeout(() => { b.classList.remove("done"); l.textContent = "Copy summary"; }, 1900);
+  b.classList.add("done"); l.textContent = t("copied");
+  setTimeout(() => { b.classList.remove("done"); l.textContent = t("copy"); }, 1900);
 }
 
 /* ---------- boot ---------- */
-function setTheme(t) {
-  document.documentElement.setAttribute("data-theme", t);
-  $("#themeLabel").textContent = t === "dark" ? "Light" : "Dark";
-  $("#theme").setAttribute("aria-pressed", t === "dark" ? "true" : "false");
-  try { localStorage.setItem("gt-theme", t); } catch (e) {}
+function applyLang(l) {
+  LANG = l === "ro" ? "ro" : "en";
+  document.documentElement.lang = LANG;
+  try { localStorage.setItem("gt-lang", LANG); } catch (e) {}
+  document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
+  document.querySelectorAll("[data-th]").forEach(el => { el.innerHTML = t(el.dataset.th); });
+  document.querySelectorAll(".seg button").forEach(b => {
+    const k = b.dataset.dir === "out" ? "outbound" : "inbound";
+    const d = b.dataset.dir === "out" ? "d28" : "d30";
+    b.innerHTML = `${t(k)} <span>${t(d)}</span>`;
+  });
+  document.title = LANG === "ro" ? "București – Groningen, 28–30 ianuarie 2027" : "Bucharest to Groningen, 28 to 30 January 2027";
+  $("#langLabel").textContent = LANG === "ro" ? "EN" : "RO";
+  $("#themeLabel").textContent = document.documentElement.getAttribute("data-theme") === "dark" ? t("light") : t("dark");
+  $("#mapToggle").textContent = $("#mappane").classList.contains("collapsed") ? t("showMap") : t("hideMap");
+  renderEditor();
+  refresh(false);
+}
+
+function setTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  $("#themeLabel").textContent = theme === "dark" ? t("light") : t("dark");
+  $("#theme").setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
+  try { localStorage.setItem("gt-theme", theme); } catch (e) {}
   const legend = document.querySelectorAll(".lg-dir i");
-  legend[0].style.background = t === "dark" ? "#5fcbb0" : "#0b6a57";
-  legend[1].style.background = t === "dark" ? "#e08cb0" : "#8a3a5b";
+  legend[0].style.background = theme === "dark" ? "#5fcbb0" : "#0b6a57";
+  legend[1].style.background = theme === "dark" ? "#e08cb0" : "#8a3a5b";
   if (map) loadTiles(BASEMAPS[tileIdx].dark ? tileIdx : 0);
   if (lastPlan) drawMap(lastPlan);
 }
@@ -2690,14 +2928,18 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#mapToggle").addEventListener("click", e => {
     const pane = $("#mappane");
     const hidden = pane.classList.toggle("collapsed");
-    e.target.textContent = hidden ? "Show map" : "Hide map";
+    e.target.textContent = hidden ? t("showMap") : t("hideMap");
     e.target.setAttribute("aria-expanded", hidden ? "false" : "true");
     setTimeout(() => map && map.invalidateSize(), 220);
   });
 
+  let savedLang = "en";
+  try { savedLang = localStorage.getItem("gt-lang") || "en"; } catch (e) {}
+
+  $("#lang").addEventListener("click", () => applyLang(LANG === "ro" ? "en" : "ro"));
+
   initMap();
-  renderEditor();
-  refresh(false);
+  applyLang(savedLang);
 
   const head = $("#top");
   const setStick = () => document.documentElement.style.setProperty("--stick", head.offsetHeight + "px");

@@ -50,6 +50,10 @@ Schedules come in three shapes:
 `priceRON` prices a leg in lei instead of euro, so the exchange rate field in the header moves it.
 `priceDal` is the NS Dal Voordeel price. `unverified: true` marks a price the warning panel lists.
 
+Text fields carry an optional `_ro` twin (`desc_ro`, `note_ro`, `sub_ro`, `label_ro`). The globe
+button in the header switches the whole page between English and Romanian; anything without a
+`_ro` twin stays as written.
+
 `paths` holds the drawn route. A reverse trip reuses the same entry, reversed, and the return line is
 offset a little so both stay visible. To redraw a path, replace the array with any list of
 `[lat, lng]` points.
