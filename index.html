@@ -147,6 +147,16 @@ h2::after{content:"";height:1px;flex:1;background:var(--line)}
 .lede{font-size:13px;color:var(--ink-2);margin:-6px 0 12px;max-width:60ch}
 
 /* ---------- direction bar ---------- */
+.routebar{display:flex;align-items:flex-end;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.rb{display:flex;flex-direction:column;gap:4px}
+.rb>span{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.rb select{appearance:none;-webkit-appearance:none;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);
+  padding:7px 27px 7px 10px;font-family:var(--sans);font-size:13.5px;color:var(--ink);min-width:148px;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="%237c868b" stroke-width="1.4" stroke-linecap="round"><path d="M1 1l4 4 4-4"/></svg>');
+  background-repeat:no-repeat;background-position:right 9px center;cursor:pointer;transition:border-color .14s}
+.rb select:hover{border-color:var(--accent)}
+.rb select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.rb-sep{color:var(--line-2);margin-bottom:11px}
 .dirbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
 .seg{display:flex;border:1px solid var(--line-2);border-radius:var(--r);overflow:hidden;background:var(--surface)}
 .seg button{background:transparent;border:0;padding:8px 14px;font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:7px;transition:background .15s,color .15s}
@@ -347,9 +357,9 @@ td.act{text-align:right}
 <header class="top" id="top">
   <div class="top-in">
     <div class="id">
-      <h1 class="route">Bucharest
+      <h1 class="route"><span id="ttlFrom">Bucharest</span>
         <svg class="arrow" width="20" height="16" viewBox="0 0 20 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8h16M11 2l6 6-6 6"/></svg>
-        Groningen</h1>
+        <span id="ttlTo">Groningen</span></h1>
       <p class="route-meta"><span data-t="metaFrom">OTP to GRQ</span><span class="only-wide" data-t="metaWide"> / Thu 28 Jan 2027 / Sat 30 Jan 2027</span><span class="only-narrow" data-t="metaShort"> / 28 to 30 Jan 2027</span><span data-t="metaPax"> / 1 passenger</span></p>
     </div>
     <div class="tools">
@@ -399,6 +409,13 @@ td.act{text-align:right}
 
   <div class="panel">
     <section class="block">
+      <div class="routebar">
+        <label class="rb"><span data-t="fromLbl">From</span>
+          <select id="fromCity" aria-label="From"></select></label>
+        <svg class="rb-sep" width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6h15M11 1l5 5-5 5"/></svg>
+        <label class="rb"><span data-t="toLbl">To</span>
+          <select id="toCity" aria-label="To"></select></label>
+      </div>
       <div class="dirbar">
         <div class="seg" role="group" aria-label="Which journey to edit">
           <button data-dir="out" class="on" aria-pressed="true">Outbound <span>28 Jan</span></button>
@@ -516,6 +533,14 @@ td.act{text-align:right}
    "city": "Groningen",
    "lat": 53.211,
    "lng": 6.5641,
+   "tz": 1
+  },
+  "ASA": {
+   "name": "Amsterdam Centraal",
+   "short": "ASA",
+   "city": "Amsterdam",
+   "lat": 52.379,
+   "lng": 4.9003,
    "tz": 1
   }
  },
@@ -768,7 +793,7 @@ td.act{text-align:right}
    }
   ],
   "ground": {
-   "AMS": [
+   "AMS-GRQ": [
     {
      "id": "A",
      "name": "NS Intercity to Groningen",
@@ -851,7 +876,7 @@ td.act{text-align:right}
      "note_ro": "Cel mai ieftin, cu vreo oră mai lent, și merge doar după un zbor de dimineață."
     }
    ],
-   "EIN": [
+   "EIN-GRQ": [
     {
      "id": "DE",
      "name": "Airport bus, then NS to Groningen",
@@ -907,27 +932,141 @@ td.act{text-align:right}
      "sub_ro": "1 schimbare",
      "note_ro": "Singura variantă rezonabilă din Eindhoven Airport. FlixBus nu merită: șase ore pe drum."
     }
+   ],
+   "AMS-ASA": [
+    {
+     "id": "A-ASA",
+     "name": "NS Sprinter to Amsterdam Centraal",
+     "name_ro": "NS Sprinter spre Amsterdam Centraal",
+     "sub": "direct",
+     "sub_ro": "direct",
+     "mode": "train",
+     "legs": [
+      {
+       "from": "AMS",
+       "to": "ASA",
+       "mode": "train",
+       "dur": 17,
+       "price": 5.6,
+       "unverified": true,
+       "sched": {
+        "every": 10,
+        "anchor": "00:04",
+        "service": [
+         "05:00",
+         "23:59"
+        ]
+       },
+       "transfer": 12,
+       "operator": "NS Sprinter",
+       "operator_ro": "NS Sprinter",
+       "note": "Seventeen minutes to the city centre, six to eight an hour. Fare not checked yet.",
+       "note_ro": "Șaptesprezece minute până în centru, șase-opt pe oră. Prețul nu e verificat."
+      }
+     ],
+     "note": "You land and you are already in the city.",
+     "note_ro": "Aterizezi și ești deja în oraș."
+    }
+   ],
+   "EIN-EHV": [
+    {
+     "id": "D",
+     "name": "Airport bus to Eindhoven Centraal",
+     "name_ro": "Autobuz spre Eindhoven Centraal",
+     "sub": "direct",
+     "sub_ro": "direct",
+     "mode": "bus",
+     "legs": [
+      {
+       "from": "EIN",
+       "to": "EHV",
+       "mode": "bus",
+       "dur": 25,
+       "price": 5.5,
+       "unverified": true,
+       "key": "busFare",
+       "sched": {
+        "every": 20,
+        "anchor": "00:07",
+        "service": [
+         "06:00",
+         "23:30"
+        ]
+       },
+       "transfer": 10,
+       "operator": "Airport bus",
+       "operator_ro": "Autobuz de aeroport",
+       "note": "Fare and duration not checked yet. Editable.",
+       "note_ro": "Prețul și durata nu sunt verificate. Se pot edita."
+      }
+     ],
+     "note": "The airport is 8 km from the centre, this is the only way in.",
+     "note_ro": "Aeroportul e la 8 km de centru, ăsta e singurul mod de a ajunge."
+    }
    ]
   }
  },
  "return": {
   "flights": [
    {
-    "id": "klm-back",
+    "id": "klm-back-0920",
     "carrier": "klm",
     "name": "KLM",
-    "sub": "AMS to OTP",
+    "sub": "direct, morning",
+    "priceFrom": 101,
     "dep": {
+     "date": "2027-01-30",
+     "time": "09:20",
      "node": "AMS"
     },
     "arr": {
+     "date": "2027-01-30",
+     "time": "13:00",
      "node": "OTP"
     },
-    "dur": 180,
-    "note": "Times not collected. Departure defaults to the outbound clock time, the arrival is calculated from the 3h00 flight.",
-    "editable": true,
-    "sub_ro": "AMS – OTP",
-    "note_ro": "Orele nu sunt colectate. Plecarea pornește de la ora dusului, sosirea se calculează din zborul de 3h00."
+    "note": "Direct, 2h40. The first train of the day from Groningen still catches it.",
+    "sub_ro": "direct, dimineața",
+    "note_ro": "Direct, 2h40. Primul tren al zilei din Groningen îl prinde."
+   },
+   {
+    "id": "klm-back-1325",
+    "carrier": "klm",
+    "name": "KLM",
+    "sub": "direct, midday",
+    "priceFrom": 128,
+    "dep": {
+     "date": "2027-01-30",
+     "time": "13:25",
+     "node": "AMS"
+    },
+    "arr": {
+     "date": "2027-01-30",
+     "time": "17:10",
+     "node": "OTP"
+    },
+    "note": "Direct, 2h45. Costs 27 EUR more than the morning and the evening departures.",
+    "sub_ro": "direct, la amiază",
+    "note_ro": "Direct, 2h45. Costă cu 27 EUR mai mult decât plecările de dimineață și de seară."
+   },
+   {
+    "id": "klm-back-2050",
+    "carrier": "klm",
+    "name": "KLM",
+    "sub": "direct, evening",
+    "priceFrom": 101,
+    "dep": {
+     "date": "2027-01-30",
+     "time": "20:50",
+     "node": "AMS"
+    },
+    "arr": {
+     "date": "2027-01-31",
+     "time": "00:30",
+     "node": "OTP"
+    },
+    "note": "Direct, 2h40. Leaves Groningen around 18:00 and lands after midnight.",
+    "sub_ro": "direct, seara",
+    "note_ro": "Direct, 2h40. Pleci din Groningen pe la 18:00 și aterizezi după miezul nopții."
    },
    {
     "id": "tarom-back-1140",
@@ -988,7 +1127,7 @@ td.act{text-align:right}
    }
   ],
   "ground": {
-   "AMS": [
+   "AMS-GRQ": [
     {
      "id": "A-rev",
      "name": "NS Intercity to Schiphol",
@@ -1076,7 +1215,7 @@ td.act{text-align:right}
      "note_ro": "Orar provizoriu. Verifică autobuzul înainte să te bazezi pe el."
     }
    ],
-   "EIN": [
+   "EIN-GRQ": [
     {
      "id": "E-rev",
      "name": "NS to Eindhoven, then airport bus",
@@ -1134,6 +1273,81 @@ td.act{text-align:right}
      "sub_ro": "1 schimbare",
      "note_ro": "Nicio legătură de dimineață nu ajunge la aeroport înainte de 09:25, așa că plannerul te pune la hotel cu o noapte înainte."
     }
+   ],
+   "AMS-ASA": [
+    {
+     "id": "A-ASA-rev",
+     "name": "NS Sprinter from Amsterdam Centraal",
+     "name_ro": "NS Sprinter din Amsterdam Centraal",
+     "sub": "direct",
+     "sub_ro": "direct",
+     "mode": "train",
+     "splitAt": 1,
+     "splitCity": "AMS",
+     "legs": [
+      {
+       "from": "ASA",
+       "to": "AMS",
+       "mode": "train",
+       "dur": 17,
+       "price": 5.6,
+       "unverified": true,
+       "sched": {
+        "every": 10,
+        "anchor": "00:04",
+        "service": [
+         "05:00",
+         "23:59"
+        ]
+       },
+       "transfer": 12,
+       "operator": "NS Sprinter",
+       "operator_ro": "NS Sprinter",
+       "note": "Seventeen minutes to the terminal, six to eight an hour. Fare not checked yet.",
+       "note_ro": "Șaptesprezece minute până la terminal, șase-opt pe oră. Prețul nu e verificat."
+      }
+     ],
+     "note": "Straight to the terminal.",
+     "note_ro": "Direct la terminal."
+    }
+   ],
+   "EIN-EHV": [
+    {
+     "id": "D-rev",
+     "name": "Airport bus from Eindhoven Centraal",
+     "name_ro": "Autobuz din Eindhoven Centraal",
+     "sub": "direct",
+     "sub_ro": "direct",
+     "mode": "bus",
+     "splitAt": 1,
+     "splitCity": "EHV",
+     "legs": [
+      {
+       "from": "EHV",
+       "to": "EIN",
+       "mode": "bus",
+       "dur": 25,
+       "price": 5.5,
+       "unverified": true,
+       "key": "busFare",
+       "sched": {
+        "every": 20,
+        "anchor": "00:07",
+        "service": [
+         "06:00",
+         "23:30"
+        ]
+       },
+       "transfer": 10,
+       "operator": "Airport bus",
+       "operator_ro": "Autobuz de aeroport",
+       "note": "Fare and duration not checked yet. Editable.",
+       "note_ro": "Prețul și durata nu sunt verificate. Se pot edita."
+      }
+     ],
+     "note": "The airport is 8 km from the centre, this is the only way out.",
+     "note_ro": "Aeroportul e la 8 km de centru, ăsta e singurul mod de a ajunge."
+    }
    ]
   }
  },
@@ -1148,12 +1362,13 @@ td.act{text-align:right}
     "ground": "A"
    },
    "back": {
-    "flight": "klm-back",
+    "flight": "klm-back-0920",
     "fare": "basic",
     "ground": "A-rev"
    },
    "label_ro": "KLM Basic + tren direct",
-   "sub_ro": "cel mai ieftin KLM, cel mai rapid la sol"
+   "sub_ro": "cel mai ieftin KLM, cel mai rapid la sol",
+   "to": "GRQ"
   },
   {
    "id": "tarom-train",
@@ -1170,7 +1385,8 @@ td.act{text-align:right}
     "ground": "A-rev"
    },
    "label_ro": "TAROM Saver + tren direct",
-   "sub_ro": "alt nonstop, tarife proprii"
+   "sub_ro": "alt nonstop, tarife proprii",
+   "to": "GRQ"
   },
   {
    "id": "klm-bus",
@@ -1182,12 +1398,13 @@ td.act{text-align:right}
     "ground": "BC"
    },
    "back": {
-    "flight": "klm-back",
+    "flight": "klm-back-0920",
     "fare": "basic",
     "ground": "BC-rev"
    },
    "label_ro": "KLM Basic + Sprinter și FlixBus",
-   "sub_ro": "cel mai ieftin la sol, cu o oră mai lent"
+   "sub_ro": "cel mai ieftin la sol, cu o oră mai lent",
+   "to": "GRQ"
   },
   {
    "id": "wizz-bundle",
@@ -1204,7 +1421,8 @@ td.act{text-align:right}
     "ground": "E-rev"
    },
    "label_ro": "Wizz cu pachet + autobuz și tren",
-   "sub_ro": "cu noapte la hotel"
+   "sub_ro": "cu noapte la hotel",
+   "to": "GRQ"
   },
   {
    "id": "wizz-basic",
@@ -1221,7 +1439,8 @@ td.act{text-align:right}
     "ground": "E-rev"
    },
    "label_ro": "Wizz fără pachet + autobuz și tren",
-   "sub_ro": "cu noapte la hotel"
+   "sub_ro": "cu noapte la hotel",
+   "to": "GRQ"
   }
  ],
  "paths": {
@@ -1866,7 +2085,86 @@ td.act{text-align:right}
     51.4437,
     5.4813
    ]
+  ],
+  "AMS-ASA": [
+   [
+    52.3086,
+    4.7635
+   ],
+   [
+    52.31,
+    4.7494
+   ],
+   [
+    52.3181,
+    4.755
+   ],
+   [
+    52.3229,
+    4.7639
+   ],
+   [
+    52.3274,
+    4.7922
+   ],
+   [
+    52.3378,
+    4.8136
+   ],
+   [
+    52.3383,
+    4.8413
+   ],
+   [
+    52.3722,
+    4.8422
+   ],
+   [
+    52.3848,
+    4.8453
+   ],
+   [
+    52.3848,
+    4.8347
+   ],
+   [
+    52.3915,
+    4.8365
+   ],
+   [
+    52.393,
+    4.8762
+   ],
+   [
+    52.3895,
+    4.8913
+   ],
+   [
+    52.3829,
+    4.8933
+   ],
+   [
+    52.3796,
+    4.9009
+   ]
   ]
+ },
+ "cities": {
+  "GRQ": {
+   "name": "Groningen",
+   "node": "GRQ",
+   "short": "GRQ"
+  },
+  "AMS": {
+   "name": "Amsterdam",
+   "node": "ASA",
+   "short": "AMS"
+  },
+  "EHV": {
+   "name": "Eindhoven",
+   "node": "EHV",
+   "short": "EHV"
+  }
  }
 }</script>
 
@@ -1896,7 +2194,7 @@ const T = {
     lgOut: "Out", lgReturn: "Return", lgFlight: "Flight", lgTrain: "Train", lgBus: "Bus",
     step1out: "Flight from Bucharest", step1back: "Flight back",
     step2fare: "Fare and baggage", step2bundle: "Baggage bundle",
-    step3out: "Airport to Groningen", step3back: "Groningen to the airport",
+    step3out: "Airport to %s", step3back: "%s to the airport",
     flight1: "flight", flightN: "flights", fare1: "fare", fareN: "fares", option1: "option", optionN: "options",
     toggle: "toggle", perPerson: "per person", oneWay: "one way", notYet: "not yet added",
     noTimes: "No times, no price, no fare",
@@ -1918,11 +2216,11 @@ const T = {
     busField: "Airport bus Eindhoven, single", notChecked: "not checked",
     thCombo: "Combination", thTotal: "Total", thTime: "Time", noConn: "no connection",
     load: "load", loaded: "loaded",
-    checkTitle: "Buffer at Schiphol", checkOk: "Comfortable. The train arrives and the flight leaves %s after you left Groningen.",
-    checkTight: "Below three hours. Reconsider the flight time.",
+    checkTitle: "Buffer at Schiphol", checkOk: "You reach the airport with %s to spare before departure.",
+    checkTight: "Under an hour at the airport. Fine without a checked bag, tight with one.",
     foot1: "<b>One passenger</b>, prices per person per direction. Times are local: Romania is one hour ahead of the Netherlands. A flight is dashed, a train solid, a bus dotted on the map.",
     foot2: "Fares, timetables and the FlixBus routes were collected by hand in late November 2026. Re-check them before booking. Anything tagged unverified is a placeholder you can edit here.",
-    sumTitle: "Bucharest to Groningen, 28 to 30 January 2027, 1 passenger",
+    sumTitle: "Bucharest to %s, 28 to 30 January 2027, 1 passenger", fromLbl: "From", toLbl: "To", fareDerived: "The return page only quotes the cheapest fare. Fares marked with a tilde are the outbound difference added to it, so check them before booking.",
     sumOut: "OUTBOUND, Thu 28 Jan", sumBack: "RETURN, Sat 30 Jan",
     sumNights: "%s nights in %s", sumHotel: "%s hotel in %s, %s (estimated)", sumTbd: "(time estimated)",
     sumTotal: "Total %s / RON %s at 1 EUR = %s RON", sumDoor: "Door to door %s", sumWarn: "Warnings:",
@@ -1932,7 +2230,7 @@ const T = {
     wNoBack: "No way back from %s", wNoBackBody: "Add ground options for this airport.",
     wNoConnBack: "No connection reaches the airport in time", wNoConnBackBody: "Nothing from Groningen gets you to %s before the %s departure. The legs below are the closest the timetable gets. Move the flight later or plan a night near the airport.",
     wOvernight: "Overnight in %s on %s required", wOvernightBody: "%s leaves %s at %s. No ground connection from Groningen reaches the airport in time that morning, so the plan above puts you in a hotel the night before.",
-    wTight: "Tight connection at the airport", wTightBody: "The train leaves Groningen %s before the flight. Under 3 hours is risky with a checked bag.",
+    wTight: "Tight connection at the airport", wTightBody: "Only %s at the airport before departure. Tight with a checked bag.",
     wWizzEst: "Wizz price without the bundle is an estimate", wWizzEstBody: "RON 498 round trip comes from the two fares plus admin fees. At that price Wizz only sells the free 40x30x20 bag, so a cabin bag costs extra.",
     wNoBag: "%s %s has no checked bag", wNoBagBody: "%s Two nights fit in hand luggage if you pack small, otherwise take the next fare up.",
     wDalPeak: "Dal Voordeel does not apply on every train", wDalPeakBody: "The 40% discount runs off-peak only, not on weekdays 06:30 to 09:00 and 16:00 to 18:30. %s train in this plan departs inside those hours and is priced at full fare.",
@@ -1953,7 +2251,7 @@ const T = {
     lgOut: "Dus", lgReturn: "Întors", lgFlight: "Avion", lgTrain: "Tren", lgBus: "Autobuz",
     step1out: "Zbor din București", step1back: "Zbor de întoarcere",
     step2fare: "Tarif și bagaj", step2bundle: "Pachet de bagaj",
-    step3out: "Aeroport → Groningen", step3back: "Groningen → aeroport",
+    step3out: "Aeroport → %s", step3back: "%s → aeroport",
     flight1: "zbor", flightN: "zboruri", fare1: "tarif", fareN: "tarife", option1: "opțiune", optionN: "opțiuni",
     toggle: "comutator", perPerson: "de persoană", oneWay: "un sens", notYet: "nu e adăugat",
     noTimes: "Fără ore, fără preț, fără tarif",
@@ -1975,11 +2273,11 @@ const T = {
     busField: "Autobuz aeroport Eindhoven, un sens", notChecked: "neverificat",
     thCombo: "Combinație", thTotal: "Total", thTime: "Durată", noConn: "fără legătură",
     load: "încarcă", loaded: "încărcat",
-    checkTitle: "Rezervă la Schiphol", checkOk: "Confortabil. Trenul ajunge, iar zborul pleacă la %s după ce ai plecat din Groningen.",
-    checkTight: "Sub trei ore. Gândește-te la altă oră de zbor.",
+    checkTitle: "Rezervă la Schiphol", checkOk: "Ajungi la aeroport cu %s înainte de plecare.",
+    checkTight: "Sub o oră la aeroport. Ok fără bagaj de cală, strâns cu unul.",
     foot1: "<b>Un pasager</b>, prețuri de persoană pe sens. Orele sunt locale: România e cu o oră înaintea Olandei. Avionul e linie întreruptă, trenul continuă, autobuzul punctat.",
     foot2: "Tarifele, orarele și rutele FlixBus au fost culese manual la finalul lui noiembrie 2026. Verifică-le înainte de rezervare. Ce e marcat neverificat e provizoriu și se poate edita aici.",
-    sumTitle: "București – Groningen, 28–30 ianuarie 2027, 1 pasager",
+    sumTitle: "București – %s, 28–30 ianuarie 2027, 1 pasager", fromLbl: "Din", toLbl: "Spre", fareDerived: "Pagina de întoarcere afișează doar cel mai mic tarif. Tarifele cu tilde sunt diferența de la dus adăugată la el, așa că verifică-le înainte de rezervare.",
     sumOut: "DUS, joi 28 ian", sumBack: "ÎNTORS, sâm 30 ian",
     sumNights: "%s nopți în %s", sumHotel: "%s hotel în %s, %s (estimat)", sumTbd: "(oră estimată)",
     sumTotal: "Total %s / RON %s la 1 EUR = %s RON", sumDoor: "Ușă la ușă %s", sumWarn: "Avertismente:",
@@ -1989,7 +2287,7 @@ const T = {
     wNoBack: "Nicio variantă de întoarcere din %s", wNoBackBody: "Adaugă opțiuni de sol pentru aeroportul ăsta.",
     wNoConnBack: "Nicio legătură nu ajunge la aeroport la timp", wNoConnBackBody: "Nimic din Groningen nu te duce la %s înainte de plecarea de %s. Picioarele de mai jos sunt cel mai aproape ce permite orarul. Mută zborul mai târziu sau pune o noapte lângă aeroport.",
     wOvernight: "Noapte în %s obligatorie pe %s", wOvernightBody: "%s pleacă din %s la %s. Nicio legătură din Groningen nu ajunge la aeroport la timp în dimineața aia, așa că planul de mai sus te pune la hotel cu o noapte înainte.",
-    wTight: "Legătură strânsă la aeroport", wTightBody: "Trenul pleacă din Groningen cu %s înainte de zbor. Sub 3 ore e riscant cu bagaj de cală.",
+    wTight: "Legătură strânsă la aeroport", wTightBody: "Doar %s la aeroport înainte de plecare. Strâns cu bagaj de cală.",
     wWizzEst: "Prețul Wizz fără pachet e o estimare", wWizzEstBody: "498 RON dus-întors vine din cele două tarife plus taxele de administrare. La banii ăștia Wizz dă doar geanta mică 40x30x20, așa că un bagaj de cabină costă în plus.",
     wNoBag: "%s %s nu are bagaj de cală", wNoBagBody: "%s Două nopți încap în bagaj de mână dacă împachetezi puțin, altfel treci la tariful următor.",
     wDalPeak: "Dal Voordeel nu se aplică la toate trenurile", wDalPeakBody: "Reducerea de 40% e doar în afara orelor de vârf, nu în zilele lucrătoare între 06:30 și 09:00 și între 16:00 și 18:30. %s tren din plan pleacă în intervalul ăla și e la tarif întreg.",
@@ -2156,9 +2454,18 @@ function planReturn(opt, flightDep, buffer) {
 /* ---------- fares ---------- */
 const ROOT = d => DATA[d === "out" ? "outbound" : "return"];
 function findFlight(dir, id) { return ROOT(dir).flights.find(f => f.id === id) || ROOT(dir).flights.find(f => !f.disabled); }
-function findGround(dir, airport, id) {
-  const list = ROOT(dir).ground[airport] || [];
+const destNode = () => DATA.cities[state.sel.to].node;
+function findGround(dir, airport, cityNode, id) {
+  const list = ROOT(dir).ground[airport + "-" + cityNode] || [];
   return list.find(g => g.id === id) || list[0] || null;
+}
+/* only the flights that can actually reach the chosen city are offered */
+function flightsFor(dir, city) {
+  return ROOT(dir).flights.filter(f => {
+    if (f.disabled) return true;
+    const ap = dir === "out" ? f.arr.node : f.dep.node;
+    return !!(ROOT(dir).ground[ap + "-" + DATA.cities[city].node] || []).length;
+  });
 }
 function fareList(carrier, dir) {
   const c = DATA.carriers[carrier];
@@ -2172,7 +2479,14 @@ function farePrice(carrier, fareId, dir, sel) {
     const f = fareById(carrier, fareId, dir);
     const st = dir === "out" ? sel.out : sel.back;
     const comfort = f.comfort && st.comfort && c.comfortPrice ? c.comfortPrice : 0;
-    let e = f.price + comfort;
+    let base = f.price;
+    if (dir === "back" && !c.faresBack) {
+      /* the return page only quotes the cheapest fare, so the other tiers
+         keep the outbound difference and are marked as derived */
+      const bf = findFlight("back", sel.back.flight);
+      if (bf && typeof bf.priceFrom === "number") base = bf.priceFrom + (f.price - c.fares[0].price);
+    }
+    let e = base + comfort;
     if (dir === "back" && st.price != null && !isNaN(st.price)) e = st.price + comfort;
     return { eur: e, ron: e * sel.ronPerEur };
   }
@@ -2199,7 +2513,7 @@ function smartBackDep(sel) {
   const times = carrierTimes(bf.carrier);
   const of = DATA.outbound.flights.find(f => f.id === sel.out.flight);
   const cand = of && of.dep && of.carrier === bf.carrier ? of.dep.time : (times[0] || "18:00");
-  const opt = findGround("back", bf.dep.node, sel.back.ground);
+  const opt = findGround("back", bf.dep.node, DATA.cities[sel.to].node, sel.back.ground);
   if (opt) {
     const rp = planReturn(opt, at(DATA.meta.backDate, cand, 1), DATA.assumptions.airportBuffer);
     if (rp.ok && !rp.overnight) return cand;
@@ -2222,7 +2536,7 @@ function compute(sel) {
     title: oF.name, sub: loc(oF, "sub"), fare: oFare.name, price: oP.eur, priceRon: oP.ron, ronNative: oF.carrier === "wizz",
     note: loc(oFare, "desc") });
 
-  const oG = findGround("out", oF.arr.node, sel.out.ground);
+  const oG = findGround("out", oF.arr.node, DATA.cities[sel.to].node, sel.out.ground);
   if (!oG) {
     warnings.push({ sev: "stop", title: t("wNoGround", oF.arr.node), body: t("wNoGroundBody") });
   } else {
@@ -2245,7 +2559,7 @@ function compute(sel) {
     const bT = flightTimes(bF, sel, "back");
     const bFare = fareById(bF.carrier, sel.back.fare, "back");
     const bP = farePrice(bF.carrier, sel.back.fare, "back", sel);
-    const gOpt = findGround("back", bF.dep.node, sel.back.ground);
+    const gOpt = findGround("back", bF.dep.node, DATA.cities[sel.to].node, sel.back.ground);
 
     if (!gOpt) {
       warnings.push({ sev: "stop", title: t("wNoBack", bF.dep.node), body: t("wNoBackBody") });
@@ -2275,18 +2589,16 @@ function compute(sel) {
         }
 
         // the three hour rule, stated either way
-        const gap = rp.dep ? Math.round((bT.dep - rp.dep) / MIN) : 0;
+        const buffer = rp.arr ? Math.round((bT.dep - rp.arr) / MIN) : 0;
         if (rp.overnight) {
           const cityName = DATA.nodes[rp.city] ? DATA.nodes[rp.city].city : rp.city;
           warnings.push({ sev: "warn", title: t("wOvernight", cityName, dayName(rp.nightDate)),
             body: t("wOvernightBody", bF.name, DATA.nodes[bF.dep.node].short, fmtT(bT.dep, 1)), hotelInput: true });
-        } else if (gap < 180) {
-          warnings.push({ sev: "warn", title: t("wTight"), body: t("wTightBody", durText(gap)) });
         }
 
         if (rp.ok && !rp.overnight && bF.dep.node === "AMS") {
-          items.push({ kind: "check", dir: "back", minutes: gap, title: t("checkTitle"),
-            note: gap >= 180 ? t("checkOk", durText(gap)) : t("checkTight") });
+          items.push({ kind: "check", dir: "back", minutes: buffer, title: t("checkTitle"),
+            note: buffer >= 60 ? t("checkOk", durText(buffer)) : t("checkTight") });
         }
       }
     }
@@ -2302,7 +2614,7 @@ function compute(sel) {
     if (outArr && backStart && backStart > outArr.arr && idx >= 0) {
       const n = nightsBetween(outArr.arr, backStart, 1);
       items.splice(idx, 0, {
-        kind: "stay", dir: "stay", city: "Groningen", from: outArr.arr, to: backStart, nights: Math.max(1, n)
+        kind: "stay", dir: "stay", city: DATA.cities[sel.to].name, from: outArr.arr, to: backStart, nights: Math.max(1, n)
       });
     }
   }
@@ -2365,8 +2677,10 @@ const state = {
     ronPerEur: DATA.fx.ronPerEur,
     hotel: DATA.assumptions.hotelNight,
     busFare: 5.50,
+    to: "GRQ",
+    from: "OTP",
     out: { flight: "klm-0600", fare: "basic", ground: "A", comfort: false },
-    back: { flight: "klm-back", fare: "basic", ground: "A-rev", comfort: false, dep: null, price: null }
+    back: { flight: "klm-back-0920", fare: "basic", ground: "A-rev", comfort: false, dep: null, price: null }
   }
 };
 let lastPlan = null;
@@ -2402,6 +2716,47 @@ function loadTiles(idx) {
   });
 }
 
+/* ---------- route bar ---------- */
+function fillRouteBar() {
+  const froms = [...new Set(DATA.outbound.flights.filter(f => !f.disabled).map(f => f.dep.node))];
+  const fromSel = $("#fromCity"), toSel = $("#toCity");
+  if (!fromSel || !toSel) return;
+  fromSel.innerHTML = froms.map(k => `<option value="${k}">${DATA.nodes[k].short} · ${loc(DATA.nodes[k], "city")}</option>`).join("");
+  fromSel.value = state.sel.from;
+  toSel.innerHTML = Object.entries(DATA.cities).map(([k, c]) => `<option value="${k}">${c.name}</option>`).join("");
+  toSel.value = state.sel.to;
+}
+function setPageTitle() {
+  const toCity = DATA.cities[state.sel.to].name;
+  const fromCity = loc(DATA.nodes[state.sel.from], "city");
+  $("#ttlFrom").textContent = fromCity;
+  $("#ttlTo").textContent = toCity;
+  const meta = document.querySelector('[data-t="metaFrom"]');
+  if (meta) meta.textContent = `${DATA.nodes[state.sel.from].short} – ${DATA.cities[state.sel.to].short}`;
+  document.title = LANG === "ro"
+    ? `București – ${toCity}, 28–30 ianuarie 2027`
+    : `${fromCity} to ${toCity}, 28 to 30 January 2027`;
+}
+/* after the destination changes, keep only selections that still make sense */
+function settleSelection() {
+  ["out", "back"].forEach(dir => {
+    const pool = flightsFor(dir, state.sel.to);
+    if (!pool.some(f => f.id === state.sel[dir].flight)) {
+      const f = pool.find(x => !x.disabled);
+      if (f) {
+        state.sel[dir].flight = f.id;
+        state.sel[dir].fare = fareList(f.carrier, dir)[0].id;
+        state.sel[dir].comfort = false;
+        if (dir === "back") { state.sel.back.dep = null; state.sel.back.price = null; }
+      }
+    }
+    const f2 = findFlight(dir, state.sel[dir].flight);
+    const ap = dir === "out" ? f2.arr.node : f2.dep.node;
+    const gs = ROOT(dir).ground[ap + "-" + DATA.cities[state.sel.to].node] || [];
+    if (!gs.some(g => g.id === state.sel[dir].ground)) state.sel[dir].ground = gs.length ? gs[0].id : null;
+  });
+}
+
 /* ---------- render: editor ---------- */
 function plural(n, one, many) { return n === 1 ? t(one) : t(many); }
 
@@ -2410,15 +2765,16 @@ function renderEditor() {
   const f = findFlight(dir, sel[dir].flight);
   const carrier = f.carrier || "klm";
   const airport = dir === "out" ? f.arr.node : f.dep.node;
-  const grounds = ROOT(dir).ground[airport] || [];
+  const grounds = ROOT(dir).ground[airport + "-" + destNode()] || [];
   const html = [];
-  const nFlights = ROOT(dir).flights.filter(x => !x.disabled).length;
+  const pool = flightsFor(dir, sel.to);
+  const nFlights = pool.filter(x => !x.disabled).length;
 
   /* step 1: flight */
   html.push(`<div class="step"><div class="step-head"><span class="step-n">01</span><h3>${dir === "out" ? t("step1out") : t("step1back")}</h3>
     <span class="step-meta">${nFlights} ${plural(nFlights, "flight1", "flightN")}</span></div><div class="opts" role="radiogroup" aria-label="${dir === "out" ? t("step1out") : t("step1back")}">`);
 
-  ROOT(dir).flights.forEach(x => {
+  pool.forEach(x => {
     const dis = !!x.disabled;
     const on = !dis && x.id === f.id;
     let detail = "", price = "";
@@ -2449,14 +2805,16 @@ function renderEditor() {
     <span class="step-meta">${carrier === "wizz" ? t("toggle") : fareSet.length + " " + plural(fareSet.length, "fare1", "fareN")}</span></div><div class="opts" role="radiogroup" aria-label="${t("step2fare")}">`);
 
   if (carrier !== "wizz") {
+    const derived = dir === "back" && !DATA.carriers[carrier].faresBack && typeof f.priceFrom === "number";
     fareSet.forEach(fr => {
       const on = fr.id === sel[dir].fare;
       html.push(`<label class="opt ${on ? "sel" : ""}">
         <input type="radio" name="fare-${dir}" value="${fr.id}" ${on ? "checked" : ""}>
         <span><span class="opt-title">${fr.name}</span><span class="opt-note">${loc(fr, "desc")}</span></span>
-        <span class="opt-price">${eur(fr.price)}${fr.comfort ? `<small>${t("comfortPlus", eur(DATA.carriers.klm.comfortPrice))}</small>` : `<small>${t("oneWay")}</small>`}</span></label>`);
+        <span class="opt-price">${dir === "back" && derived && fr.id !== fareSet[0].id ? "\u2248 " : ""}${eur(farePrice(carrier, fr.id, dir, sel).eur)}${fr.comfort ? `<small>${t("comfortPlus", eur(DATA.carriers.klm.comfortPrice))}</small>` : `<small>${t("oneWay")}</small>`}</span></label>`);
     });
     const cur = fareById(carrier, sel[dir].fare, dir);
+    if (derived) html.push(`<p class="leg-note" style="margin-top:8px">${t("fareDerived")}</p>`);
     if (carrier === "klm") {
       const hasComfort = !!cur.comfort;
       html.push(`<label class="fare-extra ${hasComfort ? "" : "dis"}">
@@ -2492,7 +2850,7 @@ function renderEditor() {
   html.push(`</div></div>`);
 
   /* step 3: last mile */
-  html.push(`<div class="step"><div class="step-head"><span class="step-n">03</span><h3>${dir === "out" ? t("step3out") : t("step3back")}</h3>
+  html.push(`<div class="step"><div class="step-head"><span class="step-n">03</span><h3>${dir === "out" ? t("step3out", DATA.cities[sel.to].name) : t("step3back", DATA.cities[sel.to].name)}</h3>
     <span class="step-meta">${airport} · ${grounds.length} ${plural(grounds.length, "option1", "optionN")}</span></div><div class="opts" role="radiogroup" aria-label="${t("step3out")}">`);
 
   grounds.forEach(g => {
@@ -2545,7 +2903,7 @@ function wireEditor() {
       sel[dir].comfort = false;
       if (dir === "back") { sel.back.dep = null; sel.back.price = null; }
       const airport = dir === "out" ? f.arr.node : f.dep.node;
-      const list = ROOT(dir).ground[airport] || [];
+      const list = ROOT(dir).ground[airport + "-" + destNode()] || [];
       sel[dir].ground = list.length ? list[0].id : null;
       renderEditor(); refresh(true);
     });
@@ -2672,11 +3030,11 @@ function renderWarnings(plan) {
 function renderCompare() {
   const base = JSON.parse(JSON.stringify(state.sel));
   const rows = DATA.presets.map(ps => {
-    const sel = { ...base, roundTrip: true, dal: false,
+    const sel = { ...base, roundTrip: true, dal: false, to: ps.to || base.to,
       out: { ...base.out, ...ps.out }, back: { ...base.back, ...ps.back, dep: null, price: null } };
     const p = compute(sel);
-    const cur = state.sel.out.flight === ps.out.flight && state.sel.out.fare === ps.out.fare &&
-                state.sel.out.ground === ps.out.ground && state.sel.back.ground === ps.back.ground;
+    const cur = state.sel.to === (ps.to || "GRQ") && state.sel.out.flight === ps.out.flight &&
+                state.sel.out.fare === ps.out.fare && state.sel.out.ground === ps.out.ground && state.sel.back.ground === ps.back.ground;
     return `<tr data-preset="${ps.id}" class="${cur ? "cur" : ""}">
       <td><div class="tname">${loc(ps, "label")}<span>${loc(ps, "sub")}</span></div></td>
       <td class="num">${p.infeasible ? `<span class="chip bad">${t("noConn")}</span>` : eur(p.totalEUR)}</td>
@@ -2687,6 +3045,7 @@ function renderCompare() {
   document.querySelectorAll("[data-use]").forEach(b => b.addEventListener("click", () => {
     const ps = DATA.presets.find(x => x.id === b.dataset.use);
     state.sel.roundTrip = true;
+    state.sel.to = ps.to || state.sel.to;
     state.sel.out = { ...state.sel.out, ...ps.out, comfort: false };
     state.sel.back = { ...state.sel.back, ...ps.back, comfort: false, dep: null, price: null };
     $("#roundtrip").checked = true;
@@ -2821,7 +3180,7 @@ function refresh(animate, skipWarnings) {
 function summaryText() {
   const p = lastPlan, sel = state.sel;
   const out = [];
-  out.push(t("sumTitle"));
+  out.push(t("sumTitle", DATA.cities[sel.to].name));
   let dirNow = null;
   p.items.forEach(it => {
     if (it.dir !== dirNow && it.dir !== "stay") {
@@ -2876,7 +3235,8 @@ function applyLang(l) {
     const d = b.dataset.dir === "out" ? "d28" : "d30";
     b.innerHTML = `${t(k)} <span>${t(d)}</span>`;
   });
-  document.title = LANG === "ro" ? "București – Groningen, 28–30 ianuarie 2027" : "Bucharest to Groningen, 28 to 30 January 2027";
+  fillRouteBar();
+  setPageTitle();
   $("#langLabel").textContent = LANG === "ro" ? "EN" : "RO";
   $("#themeLabel").textContent = document.documentElement.getAttribute("data-theme") === "dark" ? t("light") : t("dark");
   $("#mapToggle").textContent = $("#mappane").classList.contains("collapsed") ? t("showMap") : t("hideMap");
@@ -2938,7 +3298,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   $("#lang").addEventListener("click", () => applyLang(LANG === "ro" ? "en" : "ro"));
 
+  $("#toCity").addEventListener("change", e => {
+    state.sel.to = e.target.value;
+    settleSelection();
+    renderEditor(); refresh(true);
+    setPageTitle();
+  });
+  $("#fromCity").addEventListener("change", e => {
+    state.sel.from = e.target.value;
+    renderEditor(); refresh(true);
+    setPageTitle();
+  });
+
   initMap();
+  settleSelection();
   applyLang(savedLang);
 
   const head = $("#top");

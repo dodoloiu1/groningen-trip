@@ -7,6 +7,8 @@ Live: https://dodoloiu1.github.io/groningen-trip/
 
 ## What it does
 
+- Two city pickers at the top: where you fly from and where you end up (Groningen, Amsterdam or
+  Eindhoven). Only the flights and ground legs that actually serve the chosen city are offered.
 - Cascading pickers for the outbound and the return: flight, then fare, then the ground leg. The
   third step is filtered by the airport the flight lands at.
 - The map draws the selected route. Ground legs follow their real corridor, drawn from coordinates
@@ -30,8 +32,9 @@ fx           RON per euro (also editable in the header)
 assumptions  hotel cost, airport buffer, NS peak windows, overnight cutoff
 nodes        airport and station coordinates, each with its UTC offset in tz
 carriers     KLM fares; Wizz fare parts in RON
-outbound     flights, and ground options grouped by arrival airport
-return       flights, and ground options grouped by departure airport
+cities       the destinations you can pick, each with the node it ends at
+outbound     flights, and ground options keyed "airport-node" (AMS-GRQ, EIN-GRQ, AMS-ASA, EIN-EHV)
+return       the same, for the way back
 presets      the four rows in the comparison table
 paths        [lat, lng] polylines drawn on the map, keyed "FROM-TO"
 ```
@@ -66,14 +69,17 @@ key. Attribution sits in the map corner either way.
 
 ## What was checked and what was not
 
-Collected by hand in late November 2026: the KLM fare table, the TAROM nonstops and both fare
+Collected by hand in late November 2026: the KLM fare table and the three AMS to OTP departures
+(09:20, 13:25, 20:50), the TAROM nonstops and both fare
 tables (OTP to AMS 08:35 and 16:50, AMS to OTP 11:40 and 19:45, with the return page missing the
 Light fare entirely), the Wizz RON breakdown for both directions, the NS Intercity times and full
 fares, the Schiphol to Sloterdijk sprinter, the 10:05 FlixBus, and the Eindhoven train patterns
 (:46 and :16 northbound, :18 and :48 southbound).
 
-Not checked, and marked in the app: the Eindhoven airport bus fare and duration, the FlixBus back
-from Groningen, the KLM AMS to OTP return prices and times, and the hotel cost. The Wizz price
+Not checked, and marked in the app: the Eindhoven airport bus fare and duration, the Schiphol to
+Amsterdam Centraal sprinter fare, the FlixBus back from Groningen, and the hotel cost. KLM's return
+page only quotes the cheapest fare, so the tiers above Basic are the outbound difference added to it
+and carry a tilde. The Wizz price
 without the bundle is an estimate built from the two fares plus admin fees.
 
 Two options were dropped on purpose. There is no FlixBus worth taking out of Eindhoven (about six
