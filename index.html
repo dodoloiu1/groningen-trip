@@ -296,8 +296,8 @@ td.act{text-align:right}
 .node-label{background:transparent!important;border:0!important;box-shadow:none!important;color:var(--ink);
   font-family:var(--mono)!important;font-size:9.5px!important;letter-spacing:.06em;font-weight:500;padding:0!important}
 .node-label::before{display:none!important}
-.map-tiles-dim{filter:saturate(.55) contrast(.95)}
-[data-theme="dark"] .map-tiles-dim{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) saturate(.5)}
+#map .leaflet-tile-pane{opacity:.95}
+[data-theme="dark"] .tile-osm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) saturate(.55)}
 
 @media (prefers-reduced-motion:reduce){
   *{transition-duration:.01ms!important;animation-duration:.01ms!important}
@@ -424,189 +424,1315 @@ td.act{text-align:right}
   </div>
 </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script>
-/* =======================================================================
-   EDITABLE DATA
-   Everything the planner knows lives in this one object. To add a flight,
-   a fare or a ground option, copy an entry and change the fields. Nothing
-   else in the file has to change.
 
-   Times are strings "HH:MM" in the local time of that node.
-   Prices are EUR per person unless the field is priceRON.
-   Schedule shapes:
-     { every: 60, anchor: "00:59", service: ["05:30","23:30"] }  recurring
-     { times: ["10:05"] }                                       fixed departures
-     { tbd: true, wait: 45 }                                    unknown, estimated
-   ======================================================================= */
-const DATA = {
-  meta: {
-    title: "Bucharest to Groningen",
-    passengers: 1,
-    outDate: "2027-01-28",
-    backDate: "2027-01-30"
+<!-- =====================================================================
+     TRIP DATA. This block is JSON. Add flights, fares, ground legs or path
+     coordinates here and reload: nothing else needs to change.
+     nodes: lat, lng and tz (UTC offset in January)
+     prices: EUR per person per direction, unless the field is priceRON
+     schedules: {every, anchor, service} recurring | {times:[...]} fixed |
+                {tbd:true, wait} unknown, estimated from the arrival
+     paths: [lat, lng] pairs drawn on the map, one entry per node pair
+     ===================================================================== -->
+<script type="application/json" id="trip-data">
+{
+ "meta": {
+  "title": "Bucharest to Groningen",
+  "passengers": 1,
+  "outDate": "2027-01-28",
+  "backDate": "2027-01-30"
+ },
+ "fx": {
+  "ronPerEur": 5.1
+ },
+ "assumptions": {
+  "hotelNight": 60,
+  "airportBuffer": 48,
+  "peakWindows": [
+   [
+    "06:30",
+    "09:00"
+   ],
+   [
+    "16:00",
+    "18:30"
+   ]
+  ],
+  "hotelCutoff": "22:00"
+ },
+ "nodes": {
+  "OTP": {
+   "name": "Bucharest Henri Coanda",
+   "short": "OTP",
+   "city": "Bucharest",
+   "lat": 44.5711,
+   "lng": 26.0857,
+   "tz": 2
   },
-
-  /* exchange rate; also editable in the header */
-  fx: { ronPerEur: 5.10 },
-
-  assumptions: {
-    hotelNight: 60,        // EUR, unverified, editable in the warnings panel
-    airportBuffer: 48,     // minutes at the airport before departure
-    peakWindows: [["06:30","09:00"],["16:00","18:30"]], // NS peak, Mon-Fri
-    hotelCutoff: "22:00"   // latest arrival we accept for an overnight plan
+  "AMS": {
+   "name": "Amsterdam Schiphol",
+   "short": "AMS",
+   "city": "Schiphol",
+   "lat": 52.3086,
+   "lng": 4.7639,
+   "tz": 1
   },
-
-  nodes: {
-    OTP: { name: "Bucharest Henri Coanda", short: "OTP", city: "Bucharest",   lat: 44.5711, lng: 26.0857, tz: 2 },
-    AMS: { name: "Amsterdam Schiphol",     short: "AMS", city: "Schiphol",     lat: 52.3086, lng: 4.7639,  tz: 1 },
-    SLO: { name: "Amsterdam Sloterdijk",   short: "SLO", city: "Amsterdam",   lat: 52.3890, lng: 4.8375,  tz: 1 },
-    EIN: { name: "Eindhoven Airport",      short: "EIN", city: "Eindhoven",   lat: 51.4501, lng: 5.3747,  tz: 1 },
-    EHV: { name: "Eindhoven Centraal",     short: "EHV", city: "Eindhoven",   lat: 51.4433, lng: 5.4814,  tz: 1 },
-    GRQ: { name: "Groningen Centraal",     short: "GRQ", city: "Groningen",   lat: 53.2110, lng: 6.5641,  tz: 1 }
+  "SLO": {
+   "name": "Amsterdam Sloterdijk",
+   "short": "SLO",
+   "city": "Amsterdam",
+   "lat": 52.389,
+   "lng": 4.8375,
+   "tz": 1
   },
-
-  carriers: {
-    klm: {
-      name: "KLM",
-      comfortPrice: 21,
-      fares: [
-        { id:"basic",    name:"Basic",    price:115, desc:"Small bag 40x30x15 only. No hand baggage. No changes, no refund." },
-        { id:"light",    name:"Light",    price:150, desc:"Hand baggage 55x35x25. Changes cost EUR 70 plus fare difference." },
-        { id:"standard", name:"Standard", price:176, desc:"One checked bag 23 kg. Free seat at check-in. Economy Comfort +EUR 21.", comfort:true },
-        { id:"flex",     name:"Flex",     price:241, desc:"Checked bag, SkyPriority. Free changes. Refundable before departure.", comfort:true },
-        { id:"business", name:"Business", price:319, desc:"Business cabin: baggage, seat and lounge access where available." }
-      ]
+  "EIN": {
+   "name": "Eindhoven Airport",
+   "short": "EIN",
+   "city": "Eindhoven",
+   "lat": 51.4501,
+   "lng": 5.3747,
+   "tz": 1
+  },
+  "EHV": {
+   "name": "Eindhoven Centraal",
+   "short": "EHV",
+   "city": "Eindhoven",
+   "lat": 51.4433,
+   "lng": 5.4814,
+   "tz": 1
+  },
+  "GRQ": {
+   "name": "Groningen Centraal",
+   "short": "GRQ",
+   "city": "Groningen",
+   "lat": 53.211,
+   "lng": 6.5641,
+   "tz": 1
+  }
+ },
+ "carriers": {
+  "klm": {
+   "name": "KLM",
+   "comfortPrice": 21,
+   "fares": [
+    {
+     "id": "basic",
+     "name": "Basic",
+     "price": 115,
+     "desc": "Small bag 40x30x15 only. No hand baggage. No changes, no refund."
     },
-    wizz: {
-      name: "Wizz Air",
-      /* RON, quoted round trip. Bundle is the baggage toggle. */
-      bundle: {
-        label: "Smart fare bundle",
-        out:  { flightRON: 174, bundleRON: 206.86, adminRON: 45 },
-        back: { flightRON: 234, bundleRON: 268.69, adminRON: 45 }
+    {
+     "id": "light",
+     "name": "Light",
+     "price": 150,
+     "desc": "Hand baggage 55x35x25. Changes cost EUR 70 plus fare difference."
+    },
+    {
+     "id": "standard",
+     "name": "Standard",
+     "price": 176,
+     "desc": "One checked bag 23 kg. Free seat at check-in. Economy Comfort +EUR 21.",
+     "comfort": true
+    },
+    {
+     "id": "flex",
+     "name": "Flex",
+     "price": 241,
+     "desc": "Checked bag, SkyPriority. Free changes. Refundable before departure.",
+     "comfort": true
+    },
+    {
+     "id": "business",
+     "name": "Business",
+     "price": 319,
+     "desc": "Business cabin: baggage, seat and lounge access where available."
+    }
+   ]
+  },
+  "wizz": {
+   "name": "Wizz Air",
+   "bundle": {
+    "label": "Smart fare bundle",
+    "out": {
+     "flightRON": 174,
+     "bundleRON": 206.86,
+     "adminRON": 45
+    },
+    "back": {
+     "flightRON": 234,
+     "bundleRON": 268.69,
+     "adminRON": 45
+    }
+   },
+   "fares": [
+    {
+     "id": "bundle",
+     "name": "Smart fare bundle",
+     "desc": "Bundle as quoted. Confirm the bag allowance at checkout."
+    },
+    {
+     "id": "nobundle",
+     "name": "Free small bag only",
+     "desc": "Fare plus admin fee. Estimate, not confirmed."
+    }
+   ]
+  }
+ },
+ "outbound": {
+  "flights": [
+   {
+    "id": "klm-0600",
+    "carrier": "klm",
+    "name": "KLM",
+    "sub": "direct, morning",
+    "dep": {
+     "date": "2027-01-28",
+     "time": "06:00",
+     "node": "OTP"
+    },
+    "arr": {
+     "date": "2027-01-28",
+     "time": "08:00",
+     "node": "AMS"
+    },
+    "note": "Morning flight. Leaves enough time for the FlixBus from Sloterdijk."
+   },
+   {
+    "id": "klm-1800",
+    "carrier": "klm",
+    "name": "KLM",
+    "sub": "direct, evening",
+    "dep": {
+     "date": "2027-01-28",
+     "time": "18:00",
+     "node": "OTP"
+    },
+    "arr": {
+     "date": "2027-01-28",
+     "time": "20:00",
+     "node": "AMS"
+    },
+    "note": "Evening flight. The 10:05 FlixBus is long gone, the train still runs."
+   },
+   {
+    "id": "wizz-3071",
+    "carrier": "wizz",
+    "name": "Wizz Air W4 3071",
+    "sub": "direct",
+    "dep": {
+     "date": "2027-01-28",
+     "time": "06:50",
+     "node": "OTP"
+    },
+    "arr": {
+     "date": "2027-01-28",
+     "time": "08:50",
+     "node": "EIN"
+    },
+    "note": "Lands at Eindhoven Airport, 25 minutes by bus from Eindhoven Centraal."
+   },
+   {
+    "id": "tarom",
+    "carrier": null,
+    "name": "Tarom",
+    "sub": "not yet added",
+    "disabled": true
+   },
+   {
+    "id": "transavia",
+    "carrier": null,
+    "name": "Transavia",
+    "sub": "not yet added",
+    "disabled": true
+   },
+   {
+    "id": "ryanair",
+    "carrier": null,
+    "name": "Ryanair",
+    "sub": "not yet added",
+    "disabled": true
+   }
+  ],
+  "ground": {
+   "AMS": [
+    {
+     "id": "A",
+     "name": "NS Intercity to Groningen",
+     "sub": "direct",
+     "mode": "train",
+     "legs": [
+      {
+       "from": "AMS",
+       "to": "GRQ",
+       "mode": "train",
+       "dur": 132,
+       "price": 33.3,
+       "priceDal": 19.98,
+       "sched": {
+        "every": 60,
+        "anchor": "00:59",
+        "service": [
+         "05:30",
+         "23:30"
+        ]
+       },
+       "transfer": 20,
+       "operator": "NS Intercity",
+       "note": "Direct. Other departures run at :03 and :29 with one or two changes, and at :33 with three."
+      }
+     ],
+     "note": "Straightforward and fastest."
+    },
+    {
+     "id": "BC",
+     "name": "Sprinter to Sloterdijk, then FlixBus",
+     "sub": "2 changes of mode",
+     "mode": "bus",
+     "legs": [
+      {
+       "from": "AMS",
+       "to": "SLO",
+       "mode": "train",
+       "dur": 10,
+       "price": 4.6,
+       "priceDal": 2.76,
+       "sched": {
+        "every": 10,
+        "anchor": "00:18",
+        "service": [
+         "05:00",
+         "23:59"
+        ]
+       },
+       "transfer": 15,
+       "operator": "NS Sprinter"
       },
-      fares: [
-        { id:"bundle",   name:"Smart fare bundle", desc:"Bundle as quoted. Confirm the bag allowance at checkout." },
-        { id:"nobundle", name:"Free small bag only", desc:"Fare plus admin fee. Estimate, not confirmed." }
-      ]
+      {
+       "from": "SLO",
+       "to": "GRQ",
+       "mode": "bus",
+       "dur": 135,
+       "priceRON": 55.98,
+       "sched": {
+        "times": [
+         "10:05"
+        ]
+       },
+       "transfer": 20,
+       "operator": "FlixBus",
+       "note": "Wifi and power on board. Only the 10:05 departure was checked, there are about ten a day."
+      }
+     ],
+     "note": "Cheapest, about an hour slower, and only works after a morning landing."
     }
-  },
-
-  outbound: {
-    flights: [
-      { id:"klm-0600", carrier:"klm", name:"KLM", sub:"direct, morning",
-        dep:{ date:"2027-01-28", time:"06:00", node:"OTP" },
-        arr:{ date:"2027-01-28", time:"08:00", node:"AMS" },
-        note:"Morning flight. Leaves enough time for the FlixBus from Sloterdijk." },
-      { id:"klm-1800", carrier:"klm", name:"KLM", sub:"direct, evening",
-        dep:{ date:"2027-01-28", time:"18:00", node:"OTP" },
-        arr:{ date:"2027-01-28", time:"20:00", node:"AMS" },
-        note:"Evening flight. The 10:05 FlixBus is long gone, the train still runs." },
-      { id:"wizz-3071", carrier:"wizz", name:"Wizz Air W4 3071", sub:"direct",
-        dep:{ date:"2027-01-28", time:"06:50", node:"OTP" },
-        arr:{ date:"2027-01-28", time:"08:50", node:"EIN" },
-        note:"Lands at Eindhoven Airport, 25 minutes by bus from Eindhoven Centraal." },
-      { id:"tarom",   carrier:null, name:"Tarom",      sub:"not yet added", disabled:true },
-      { id:"transavia", carrier:null, name:"Transavia", sub:"not yet added", disabled:true },
-      { id:"ryanair", carrier:null, name:"Ryanair",    sub:"not yet added", disabled:true }
-    ],
-    ground: {
-      AMS: [
-        { id:"A", name:"NS Intercity to Groningen", sub:"direct", mode:"train",
-          legs:[ { from:"AMS", to:"GRQ", mode:"train", dur:132, price:33.30, priceDal:19.98,
-                   sched:{ every:60, anchor:"00:59", service:["05:30","23:30"] }, transfer:20,
-                   operator:"NS Intercity",
-                   note:"Direct. Other departures run at :03 and :29 with one or two changes, and at :33 with three." } ],
-          note:"Straightforward and fastest." },
-        { id:"BC", name:"Sprinter to Sloterdijk, then FlixBus", sub:"2 changes of mode", mode:"bus",
-          legs:[ { from:"AMS", to:"SLO", mode:"train", dur:10, price:4.60, priceDal:2.76,
-                   sched:{ every:10, anchor:"00:18", service:["05:00","23:59"] }, transfer:15, operator:"NS Sprinter" },
-                 { from:"SLO", to:"GRQ", mode:"bus", dur:135, priceRON:55.98,
-                   sched:{ times:["10:05"] }, transfer:20, operator:"FlixBus",
-                   note:"Wifi and power on board. Only the 10:05 departure was checked, there are about ten a day." } ],
-          note:"Cheapest, about an hour slower, and only works after a morning landing." }
-      ],
-      EIN: [
-        { id:"DE", name:"Airport bus, then NS to Groningen", sub:"1 change", mode:"train",
-          legs:[ { from:"EIN", to:"EHV", mode:"bus", dur:25, price:5.50, unverified:true, key:"busFare",
-                   sched:{ every:20, anchor:"00:07", service:["06:00","23:30"] }, transfer:20, operator:"Airport bus",
-                   note:"Fare and duration not checked yet. Editable." },
-                 { from:"EHV", to:"GRQ", mode:"train", dur:176, price:33.30, priceDal:19.98,
-                   sched:{ every:30, anchor:"00:46", service:["05:30","23:00"] }, transfer:10, operator:"NS Intercity",
-                   note:"Departures at :46 have one change, :16 have two." } ],
-          note:"The only realistic way out of Eindhoven Airport." },
-        { id:"F", name:"FlixBus Eindhoven to Groningen", sub:"placeholder", mode:"bus",
-          legs:[ { from:"EHV", to:"GRQ", mode:"bus", dur:210, priceRON:55.98, tbd:true,
-                   sched:{ tbd:true, wait:45 }, transfer:20, operator:"FlixBus" } ],
-          note:"Timetable not checked. Times shown are estimates until you fill them in.",
-          unverified:true }
-      ]
+   ],
+   "EIN": [
+    {
+     "id": "DE",
+     "name": "Airport bus, then NS to Groningen",
+     "sub": "1 change",
+     "mode": "train",
+     "legs": [
+      {
+       "from": "EIN",
+       "to": "EHV",
+       "mode": "bus",
+       "dur": 25,
+       "price": 5.5,
+       "unverified": true,
+       "key": "busFare",
+       "sched": {
+        "every": 20,
+        "anchor": "00:07",
+        "service": [
+         "06:00",
+         "23:30"
+        ]
+       },
+       "transfer": 20,
+       "operator": "Airport bus",
+       "note": "Fare and duration not checked yet. Editable."
+      },
+      {
+       "from": "EHV",
+       "to": "GRQ",
+       "mode": "train",
+       "dur": 176,
+       "price": 33.3,
+       "priceDal": 19.98,
+       "sched": {
+        "every": 30,
+        "anchor": "00:46",
+        "service": [
+         "05:30",
+         "23:00"
+        ]
+       },
+       "transfer": 10,
+       "operator": "NS Intercity",
+       "note": "Departures at :46 have one change, :16 have two."
+      }
+     ],
+     "note": "The only realistic way out of Eindhoven Airport."
+    },
+    {
+     "id": "F",
+     "name": "FlixBus Eindhoven to Groningen",
+     "sub": "placeholder",
+     "mode": "bus",
+     "legs": [
+      {
+       "from": "EHV",
+       "to": "GRQ",
+       "mode": "bus",
+       "dur": 210,
+       "priceRON": 55.98,
+       "tbd": true,
+       "sched": {
+        "tbd": true,
+        "wait": 45
+       },
+       "transfer": 20,
+       "operator": "FlixBus"
+      }
+     ],
+     "note": "Timetable not checked. Times shown are estimates until you fill them in.",
+     "unverified": true
     }
-  },
-
-  return: {
-    flights: [
-      { id:"klm-back", carrier:"klm", name:"KLM", sub:"AMS to OTP",
-        dep:{ node:"AMS" }, arr:{ node:"OTP" }, dur:180,
-        note:"Times not collected. Departure defaults to the outbound clock time, the arrival is calculated from the 3h00 flight." },
-      { id:"wizz-back", carrier:"wizz", name:"Wizz Air W4 3072", sub:"EIN to OTP",
-        dep:{ date:"2027-01-30", time:"09:25", node:"EIN" },
-        arr:{ date:"2027-01-30", time:"13:10", node:"OTP" },
-        note:"Fixed times. 09:25 is early enough to break the same-day train." },
-      { id:"tarom-back", carrier:null, name:"Tarom", sub:"not yet added", disabled:true }
-    ],
-    ground: {
-      AMS: [
-        { id:"A-rev", name:"NS Intercity to Schiphol", sub:"direct", mode:"train", splitAt:1, splitCity:"AMS",
-          legs:[ { from:"GRQ", to:"AMS", mode:"train", dur:132, price:33.30, priceDal:19.98,
-                   sched:{ every:30, anchor:"00:18", service:["05:30","23:00"] }, transfer:15, operator:"NS Intercity",
-                   note:"Two per hour. The example run is 08:48 to 11:00." } ],
-          note:"The planner picks the last train that still makes the flight." },
-        { id:"BC-rev", name:"FlixBus to Sloterdijk, then Sprinter", sub:"placeholder", mode:"bus", splitAt:1, splitCity:"AMS", noOvernight:true,
-          legs:[ { from:"GRQ", to:"SLO", mode:"bus", dur:135, priceRON:55.98, tbd:true,
-                   sched:{ tbd:true, wait:30 }, transfer:20, operator:"FlixBus",
-                   note:"Return timetable not checked. Price taken from the outbound." },
-                 { from:"SLO", to:"AMS", mode:"train", dur:10, price:4.60, priceDal:2.76,
-                   sched:{ every:10, anchor:"00:18", service:["05:00","23:59"] }, transfer:10, operator:"NS Sprinter" } ],
-          note:"Placeholder schedule. Verify the bus before you rely on it." }
-      ],
-      EIN: [
-        { id:"E-rev", name:"NS to Eindhoven, then airport bus", sub:"1 change", mode:"train", splitAt:1, splitCity:"EHV",
-          legs:[ { from:"GRQ", to:"EHV", mode:"train", dur:176, price:33.30, priceDal:19.98,
-                   sched:{ every:30, anchor:"00:18", service:["05:30","23:00"] }, transfer:15, operator:"NS Intercity",
-                   note:"Departures at :18 have one change, :48 have two. Example: 06:18 to 09:14." },
-                 { from:"EHV", to:"EIN", mode:"bus", dur:25, price:5.50, unverified:true, key:"busFare",
-                   sched:{ every:20, anchor:"00:07", service:["06:00","23:30"] }, transfer:10, operator:"Airport bus",
-                   note:"Fare and duration not checked yet. Editable." } ],
-          note:"No morning connection reaches the airport before 09:25, so the planner puts you in a hotel the night before." },
-        { id:"F-rev", name:"FlixBus Groningen to Eindhoven", sub:"placeholder", mode:"bus", splitAt:1, splitCity:"EHV",
-          legs:[ { from:"GRQ", to:"EHV", mode:"bus", dur:210, priceRON:55.98, tbd:true,
-                   sched:{ tbd:true, wait:30 }, transfer:20, operator:"FlixBus" },
-                 { from:"EHV", to:"EIN", mode:"bus", dur:25, price:5.50, unverified:true, key:"busFare",
-                   sched:{ every:20, anchor:"00:07", service:["06:00","23:30"] }, transfer:10, operator:"Airport bus" } ],
-          note:"Timetable not checked. Treat every time here as a guess." }
-      ]
+   ]
+  }
+ },
+ "return": {
+  "flights": [
+   {
+    "id": "klm-back",
+    "carrier": "klm",
+    "name": "KLM",
+    "sub": "AMS to OTP",
+    "dep": {
+     "node": "AMS"
+    },
+    "arr": {
+     "node": "OTP"
+    },
+    "dur": 180,
+    "note": "Times not collected. Departure defaults to the outbound clock time, the arrival is calculated from the 3h00 flight."
+   },
+   {
+    "id": "wizz-back",
+    "carrier": "wizz",
+    "name": "Wizz Air W4 3072",
+    "sub": "EIN to OTP",
+    "dep": {
+     "date": "2027-01-30",
+     "time": "09:25",
+     "node": "EIN"
+    },
+    "arr": {
+     "date": "2027-01-30",
+     "time": "13:10",
+     "node": "OTP"
+    },
+    "note": "Fixed times. 09:25 is early enough to break the same-day train."
+   },
+   {
+    "id": "tarom-back",
+    "carrier": null,
+    "name": "Tarom",
+    "sub": "not yet added",
+    "disabled": true
+   }
+  ],
+  "ground": {
+   "AMS": [
+    {
+     "id": "A-rev",
+     "name": "NS Intercity to Schiphol",
+     "sub": "direct",
+     "mode": "train",
+     "splitAt": 1,
+     "splitCity": "AMS",
+     "legs": [
+      {
+       "from": "GRQ",
+       "to": "AMS",
+       "mode": "train",
+       "dur": 132,
+       "price": 33.3,
+       "priceDal": 19.98,
+       "sched": {
+        "every": 30,
+        "anchor": "00:18",
+        "service": [
+         "05:30",
+         "23:00"
+        ]
+       },
+       "transfer": 15,
+       "operator": "NS Intercity",
+       "note": "Two per hour. The example run is 08:48 to 11:00."
+      }
+     ],
+     "note": "The planner picks the last train that still makes the flight."
+    },
+    {
+     "id": "BC-rev",
+     "name": "FlixBus to Sloterdijk, then Sprinter",
+     "sub": "placeholder",
+     "mode": "bus",
+     "splitAt": 1,
+     "splitCity": "AMS",
+     "noOvernight": true,
+     "legs": [
+      {
+       "from": "GRQ",
+       "to": "SLO",
+       "mode": "bus",
+       "dur": 135,
+       "priceRON": 55.98,
+       "tbd": true,
+       "sched": {
+        "tbd": true,
+        "wait": 30
+       },
+       "transfer": 20,
+       "operator": "FlixBus",
+       "note": "Return timetable not checked. Price taken from the outbound."
+      },
+      {
+       "from": "SLO",
+       "to": "AMS",
+       "mode": "train",
+       "dur": 10,
+       "price": 4.6,
+       "priceDal": 2.76,
+       "sched": {
+        "every": 10,
+        "anchor": "00:18",
+        "service": [
+         "05:00",
+         "23:59"
+        ]
+       },
+       "transfer": 10,
+       "operator": "NS Sprinter"
+      }
+     ],
+     "note": "Placeholder schedule. Verify the bus before you rely on it."
     }
+   ],
+   "EIN": [
+    {
+     "id": "E-rev",
+     "name": "NS to Eindhoven, then airport bus",
+     "sub": "1 change",
+     "mode": "train",
+     "splitAt": 1,
+     "splitCity": "EHV",
+     "legs": [
+      {
+       "from": "GRQ",
+       "to": "EHV",
+       "mode": "train",
+       "dur": 176,
+       "price": 33.3,
+       "priceDal": 19.98,
+       "sched": {
+        "every": 30,
+        "anchor": "00:18",
+        "service": [
+         "05:30",
+         "23:00"
+        ]
+       },
+       "transfer": 15,
+       "operator": "NS Intercity",
+       "note": "Departures at :18 have one change, :48 have two. Example: 06:18 to 09:14."
+      },
+      {
+       "from": "EHV",
+       "to": "EIN",
+       "mode": "bus",
+       "dur": 25,
+       "price": 5.5,
+       "unverified": true,
+       "key": "busFare",
+       "sched": {
+        "every": 20,
+        "anchor": "00:07",
+        "service": [
+         "06:00",
+         "23:30"
+        ]
+       },
+       "transfer": 10,
+       "operator": "Airport bus",
+       "note": "Fare and duration not checked yet. Editable."
+      }
+     ],
+     "note": "No morning connection reaches the airport before 09:25, so the planner puts you in a hotel the night before."
+    },
+    {
+     "id": "F-rev",
+     "name": "FlixBus Groningen to Eindhoven",
+     "sub": "placeholder",
+     "mode": "bus",
+     "splitAt": 1,
+     "splitCity": "EHV",
+     "legs": [
+      {
+       "from": "GRQ",
+       "to": "EHV",
+       "mode": "bus",
+       "dur": 210,
+       "priceRON": 55.98,
+       "tbd": true,
+       "sched": {
+        "tbd": true,
+        "wait": 30
+       },
+       "transfer": 20,
+       "operator": "FlixBus"
+      },
+      {
+       "from": "EHV",
+       "to": "EIN",
+       "mode": "bus",
+       "dur": 25,
+       "price": 5.5,
+       "unverified": true,
+       "key": "busFare",
+       "sched": {
+        "every": 20,
+        "anchor": "00:07",
+        "service": [
+         "06:00",
+         "23:30"
+        ]
+       },
+       "transfer": 10,
+       "operator": "Airport bus"
+      }
+     ],
+     "note": "Timetable not checked. Treat every time here as a guess."
+    }
+   ]
+  }
+ },
+ "presets": [
+  {
+   "id": "klm-train",
+   "label": "KLM Basic + direct train",
+   "sub": "cheapest KLM, fastest ground",
+   "out": {
+    "flight": "klm-0600",
+    "fare": "basic",
+    "ground": "A"
+   },
+   "back": {
+    "flight": "klm-back",
+    "fare": "basic",
+    "ground": "A-rev"
+   }
   },
-
-  /* the comparison table; each entry is a full selection */
-  presets: [
-    { id:"klm-train", label:"KLM Basic + direct train", sub:"cheapest KLM, fastest ground",
-      out:{ flight:"klm-0600", fare:"basic", ground:"A" },
-      back:{ flight:"klm-back", fare:"basic", ground:"A-rev" } },
-    { id:"klm-bus", label:"KLM Basic + Sprinter and FlixBus", sub:"cheapest ground, one hour slower",
-      out:{ flight:"klm-0600", fare:"basic", ground:"BC" },
-      back:{ flight:"klm-back", fare:"basic", ground:"BC-rev" } },
-    { id:"wizz-bundle", label:"Wizz bundle + bus and train", sub:"with hotel night",
-      out:{ flight:"wizz-3071", fare:"bundle", ground:"DE" },
-      back:{ flight:"wizz-back", fare:"bundle", ground:"E-rev" } },
-    { id:"wizz-basic", label:"Wizz without bundle + bus and train", sub:"with hotel night",
-      out:{ flight:"wizz-3071", fare:"nobundle", ground:"DE" },
-      back:{ flight:"wizz-back", fare:"nobundle", ground:"E-rev" } }
+  {
+   "id": "klm-bus",
+   "label": "KLM Basic + Sprinter and FlixBus",
+   "sub": "cheapest ground, one hour slower",
+   "out": {
+    "flight": "klm-0600",
+    "fare": "basic",
+    "ground": "BC"
+   },
+   "back": {
+    "flight": "klm-back",
+    "fare": "basic",
+    "ground": "BC-rev"
+   }
+  },
+  {
+   "id": "wizz-bundle",
+   "label": "Wizz bundle + bus and train",
+   "sub": "with hotel night",
+   "out": {
+    "flight": "wizz-3071",
+    "fare": "bundle",
+    "ground": "DE"
+   },
+   "back": {
+    "flight": "wizz-back",
+    "fare": "bundle",
+    "ground": "E-rev"
+   }
+  },
+  {
+   "id": "wizz-basic",
+   "label": "Wizz without bundle + bus and train",
+   "sub": "with hotel night",
+   "out": {
+    "flight": "wizz-3071",
+    "fare": "nobundle",
+    "ground": "DE"
+   },
+   "back": {
+    "flight": "wizz-back",
+    "fare": "nobundle",
+    "ground": "E-rev"
+   }
+  }
+ ],
+ "paths": {
+  "AMS-GRQ": [
+   [
+    52.3086,
+    4.7635
+   ],
+   [
+    52.31,
+    4.7494
+   ],
+   [
+    52.3229,
+    4.7639
+   ],
+   [
+    52.3381,
+    4.8411
+   ],
+   [
+    52.3915,
+    4.845
+   ],
+   [
+    52.3931,
+    4.8671
+   ],
+   [
+    52.3782,
+    4.9049
+   ],
+   [
+    52.3712,
+    4.9651
+   ],
+   [
+    52.3644,
+    4.9703
+   ],
+   [
+    52.35,
+    4.9615
+   ],
+   [
+    52.3346,
+    4.9959
+   ],
+   [
+    52.3152,
+    5.1145
+   ],
+   [
+    52.3412,
+    5.1763
+   ],
+   [
+    52.3732,
+    5.1723
+   ],
+   [
+    52.3859,
+    5.1917
+   ],
+   [
+    52.3897,
+    5.217
+   ],
+   [
+    52.374,
+    5.2224
+   ],
+   [
+    52.3898,
+    5.2172
+   ],
+   [
+    52.4141,
+    5.2974
+   ],
+   [
+    52.3967,
+    5.3465
+   ],
+   [
+    52.4795,
+    5.5056
+   ],
+   [
+    52.4942,
+    5.4752
+   ],
+   [
+    52.5074,
+    5.472
+   ],
+   [
+    52.5495,
+    5.4902
+   ],
+   [
+    52.5513,
+    5.695
+   ],
+   [
+    52.5372,
+    5.7612
+   ],
+   [
+    52.5449,
+    5.8596
+   ],
+   [
+    52.5542,
+    5.8805
+   ],
+   [
+    52.5137,
+    5.9359
+   ],
+   [
+    52.5004,
+    6.0008
+   ],
+   [
+    52.4844,
+    6.0235
+   ],
+   [
+    52.5056,
+    6.0665
+   ],
+   [
+    52.5039,
+    6.0895
+   ],
+   [
+    52.5067,
+    6.0686
+   ],
+   [
+    52.5222,
+    6.0952
+   ],
+   [
+    52.5329,
+    6.1546
+   ],
+   [
+    52.6085,
+    6.2073
+   ],
+   [
+    52.6954,
+    6.1932
+   ],
+   [
+    52.691,
+    6.2085
+   ],
+   [
+    52.7048,
+    6.2097
+   ],
+   [
+    52.708,
+    6.2833
+   ],
+   [
+    52.7746,
+    6.4482
+   ],
+   [
+    52.8155,
+    6.4624
+   ],
+   [
+    52.8906,
+    6.5277
+   ],
+   [
+    52.97,
+    6.5489
+   ],
+   [
+    52.9839,
+    6.5386
+   ],
+   [
+    52.9936,
+    6.5585
+   ],
+   [
+    52.9937,
+    6.5269
+   ],
+   [
+    53.0002,
+    6.5263
+   ],
+   [
+    53.0369,
+    6.5821
+   ],
+   [
+    53.0637,
+    6.603
+   ],
+   [
+    53.102,
+    6.6127
+   ],
+   [
+    53.1453,
+    6.607
+   ],
+   [
+    53.1889,
+    6.5666
+   ],
+   [
+    53.2113,
+    6.5635
+   ]
+  ],
+  "EHV-GRQ": [
+   [
+    51.4437,
+    5.4813
+   ],
+   [
+    51.4899,
+    5.4866
+   ],
+   [
+    51.499,
+    5.4757
+   ],
+   [
+    51.4986,
+    5.4229
+   ],
+   [
+    51.5558,
+    5.3607
+   ],
+   [
+    51.5864,
+    5.3538
+   ],
+   [
+    51.6142,
+    5.3185
+   ],
+   [
+    51.6824,
+    5.2892
+   ],
+   [
+    51.702,
+    5.2959
+   ],
+   [
+    51.7022,
+    5.3044
+   ],
+   [
+    51.717,
+    5.2965
+   ],
+   [
+    51.7238,
+    5.3272
+   ],
+   [
+    51.7737,
+    5.2603
+   ],
+   [
+    51.8258,
+    5.258
+   ],
+   [
+    51.9336,
+    5.16
+   ],
+   [
+    51.9729,
+    5.1071
+   ],
+   [
+    52.0076,
+    5.117
+   ],
+   [
+    52.0566,
+    5.1473
+   ],
+   [
+    52.0574,
+    5.1236
+   ],
+   [
+    52.0775,
+    5.1236
+   ],
+   [
+    52.0892,
+    5.1123
+   ],
+   [
+    52.0794,
+    5.1432
+   ],
+   [
+    52.0907,
+    5.1559
+   ],
+   [
+    52.134,
+    5.3979
+   ],
+   [
+    52.15,
+    5.3846
+   ],
+   [
+    52.1587,
+    5.4215
+   ],
+   [
+    52.2346,
+    5.4616
+   ],
+   [
+    52.2629,
+    5.5314
+   ],
+   [
+    52.3274,
+    5.5804
+   ],
+   [
+    52.3435,
+    5.706
+   ],
+   [
+    52.3683,
+    5.8117
+   ],
+   [
+    52.4419,
+    5.9682
+   ],
+   [
+    52.4661,
+    5.9866
+   ],
+   [
+    52.4919,
+    6.0347
+   ],
+   [
+    52.5056,
+    6.0668
+   ],
+   [
+    52.5039,
+    6.0895
+   ],
+   [
+    52.5064,
+    6.0686
+   ],
+   [
+    52.5199,
+    6.0898
+   ],
+   [
+    52.5353,
+    6.159
+   ],
+   [
+    52.6072,
+    6.2069
+   ],
+   [
+    52.6635,
+    6.1978
+   ],
+   [
+    52.6766,
+    6.2076
+   ],
+   [
+    52.6859,
+    6.2414
+   ],
+   [
+    52.6771,
+    6.3444
+   ],
+   [
+    52.705,
+    6.4265
+   ],
+   [
+    52.7066,
+    6.4599
+   ],
+   [
+    52.7391,
+    6.4664
+   ],
+   [
+    52.7873,
+    6.4479
+   ],
+   [
+    52.8917,
+    6.5283
+   ],
+   [
+    52.97,
+    6.5489
+   ],
+   [
+    52.9839,
+    6.5386
+   ],
+   [
+    52.9918,
+    6.5585
+   ],
+   [
+    52.9937,
+    6.5269
+   ],
+   [
+    53.0002,
+    6.5263
+   ],
+   [
+    53.0358,
+    6.5812
+   ],
+   [
+    53.0637,
+    6.603
+   ],
+   [
+    53.1012,
+    6.6126
+   ],
+   [
+    53.1453,
+    6.607
+   ],
+   [
+    53.1889,
+    6.5666
+   ],
+   [
+    53.2113,
+    6.5635
+   ]
+  ],
+  "AMS-SLO": [
+   [
+    52.3086,
+    4.7635
+   ],
+   [
+    52.31,
+    4.7494
+   ],
+   [
+    52.3229,
+    4.7639
+   ],
+   [
+    52.3383,
+    4.8413
+   ],
+   [
+    52.3848,
+    4.8453
+   ],
+   [
+    52.389,
+    4.8363
+   ]
+  ],
+  "SLO-GRQ": [
+   [
+    52.389,
+    4.8363
+   ],
+   [
+    52.3888,
+    4.8443
+   ],
+   [
+    52.3373,
+    4.8436
+   ],
+   [
+    52.3285,
+    4.9163
+   ],
+   [
+    52.3502,
+    4.9649
+   ],
+   [
+    52.3337,
+    4.9992
+   ],
+   [
+    52.3144,
+    5.1103
+   ],
+   [
+    52.3523,
+    5.2033
+   ],
+   [
+    52.3553,
+    5.2571
+   ],
+   [
+    52.3818,
+    5.3003
+   ],
+   [
+    52.4194,
+    5.3958
+   ],
+   [
+    52.4942,
+    5.5258
+   ],
+   [
+    52.5105,
+    5.5336
+   ],
+   [
+    52.5623,
+    5.5316
+   ],
+   [
+    52.589,
+    5.5562
+   ],
+   [
+    52.6065,
+    5.6343
+   ],
+   [
+    52.6241,
+    5.6637
+   ],
+   [
+    52.6611,
+    5.6911
+   ],
+   [
+    52.6924,
+    5.7773
+   ],
+   [
+    52.7653,
+    5.7653
+   ],
+   [
+    52.8513,
+    5.7217
+   ],
+   [
+    52.901,
+    5.77
+   ],
+   [
+    52.9384,
+    5.7888
+   ],
+   [
+    52.9582,
+    5.8225
+   ],
+   [
+    52.9924,
+    5.985
+   ],
+   [
+    53.086,
+    6.0772
+   ],
+   [
+    53.1318,
+    6.1917
+   ],
+   [
+    53.1917,
+    6.3976
+   ],
+   [
+    53.204,
+    6.4842
+   ],
+   [
+    53.1958,
+    6.5365
+   ],
+   [
+    53.2018,
+    6.5648
+   ],
+   [
+    53.2113,
+    6.5635
+   ]
+  ],
+  "EIN-EHV": [
+   [
+    51.4541,
+    5.3863
+   ],
+   [
+    51.4603,
+    5.3972
+   ],
+   [
+    51.4432,
+    5.4423
+   ],
+   [
+    51.4517,
+    5.4643
+   ],
+   [
+    51.4437,
+    5.4813
+   ]
   ]
-};
-/* ===================== end of data ===================== */
+ }
+}
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<script>
+/* The data above is plain JSON. Edit it there, not here. */
+const DATA = JSON.parse(document.getElementById("trip-data").textContent);
 
 /* ---------- tiny helpers ---------- */
 const $ = (s, r) => (r || document).querySelector(s);
@@ -974,7 +2100,37 @@ const state = {
   }
 };
 let lastPlan = null;
-let map, layerGroup;
+let map, layerGroup, tileLayer, tileIdx = 0, tileFails = 0;
+
+/* Basemaps in order of preference, all keyless. OpenStreetMap's own tile server
+   refuses some networks outright (403), so the next one loads automatically. */
+const BASEMAPS = [
+  { name: "osm", url: () => "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    opts: { subdomains: "abc", maxZoom: 19 }, dark: false },
+  { name: "osm-de", url: () => "https://tile.openstreetmap.de/{z}/{x}/{y}.png",
+    opts: { maxZoom: 18 }, dark: false },
+  { name: "esri", url: () => document.documentElement.getAttribute("data-theme") === "dark"
+      ? "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+      : "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    opts: { maxZoom: 16 }, dark: true }
+];
+
+function loadTiles(idx) {
+  if (!map) return;
+  if (tileLayer) map.removeLayer(tileLayer);
+  tileIdx = idx; tileFails = 0;
+  const b = BASEMAPS[idx];
+  tileLayer = L.tileLayer(b.url(), {
+    ...b.opts, minZoom: 3, detectRetina: true,
+    className: b.dark ? "" : "tile-osm",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' +
+                 (b.name === "esri" ? ' &copy; <a href="https://www.esri.com/">Esri</a>' : "")
+  }).addTo(map);
+  tileLayer.on("tileerror", () => {
+    tileFails++;
+    if (tileFails === 3 && tileIdx < BASEMAPS.length - 1) loadTiles(tileIdx + 1);
+  });
+}
 
 /* ---------- render: editor ---------- */
 function renderEditor() {
@@ -1298,8 +2454,15 @@ function drawMap(plan) {
   plan.items.filter(i => i.kind === "flight" || i.kind === "ground").forEach(it => {
     const A = [DATA.nodes[it.from].lat, DATA.nodes[it.from].lng];
     const B = [DATA.nodes[it.to].lat, DATA.nodes[it.to].lng];
-    let pts = it.kind === "flight" ? arc(A, B, 0.20) : [A, B];
-    if (it.dir === "back") pts = it.kind === "flight" ? pts : offsetLine(pts, 0.05);
+    let pts;
+    if (it.kind === "flight") {
+      pts = arc(A, B, 0.20);
+    } else {
+      const fwd = DATA.paths[it.from + "-" + it.to];
+      const rev = DATA.paths[it.to + "-" + it.from];
+      pts = fwd ? fwd : rev ? rev.slice().reverse() : [A, B];
+    }
+    if (it.dir === "back") pts = it.kind === "flight" ? pts : offsetLine(pts, 0.10);
     const dash = it.kind === "flight" ? "7 7" : it.mode === "bus" ? "1 6" : null;
     L.polyline(pts, {
       color: C[it.dir], weight: it.kind === "flight" ? 2 : it.mode === "bus" ? 3 : 2.6,
@@ -1332,10 +2495,7 @@ function initMap() {
     dragging: window.innerWidth >= 1000, touchZoom: false,
     attributionControl: true
   }).setView([50.4, 15.5], 5);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 12, minZoom: 3, className: "map-tiles-dim",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
+  loadTiles(0);
   setTimeout(() => { map.invalidateSize(); if (lastPlan) drawMap(lastPlan); }, 80);
 }
 
@@ -1432,6 +2592,7 @@ function setTheme(t) {
   const legend = document.querySelectorAll(".lg-dir i");
   legend[0].style.background = t === "dark" ? "#5fcbb0" : "#0b6a57";
   legend[1].style.background = t === "dark" ? "#e08cb0" : "#8a3a5b";
+  if (map) loadTiles(BASEMAPS[tileIdx].dark ? tileIdx : 0);
   if (lastPlan) drawMap(lastPlan);
 }
 document.addEventListener("DOMContentLoaded", () => {

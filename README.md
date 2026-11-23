@@ -9,8 +9,8 @@ Live: https://dodoloiu1.github.io/groningen-trip/
 
 - Cascading pickers for the outbound and the return: flight, then fare, then the ground leg. The
   third step is filtered by the airport the flight lands at.
-- The map draws the selected route. Flight legs are dashed arcs, trains are solid, buses are
-  dotted. Teal is outbound, plum is return.
+- The map draws the selected route. Ground legs follow their real corridor, drawn from coordinates
+  stored in the JSON; flights are dashed arcs. Teal is outbound, plum is return.
 - The itinerary lists every leg with times, duration, price and the catch (bag rules, peak-hour
   fares, unverified placeholders).
 - A running total in EUR and RON, plus door to door time.
@@ -18,18 +18,22 @@ Live: https://dodoloiu1.github.io/groningen-trip/
   airport buffers, Dal Voordeel that does not apply in peak hours.
 - A comparison table with four preset combinations. Load one to edit it.
 
-## Editing the data
+## The data
 
-Everything lives in the `DATA` object at the top of the `<script>` in `index.html`. Nothing else in
-the file needs to change to add an option.
+All of it sits in one `<script type="application/json" id="trip-data">` block near the bottom of
+`index.html`. It is plain JSON: open the file, edit the block, reload. Nothing else in the file has
+to change to add a flight, a fare, a ground leg or a path.
 
 ```
-DATA.nodes      airport and station coordinates, each with its UTC offset (tz)
-DATA.carriers   KLM fares, Wizz fare parts in RON
-DATA.outbound   flights and ground options, grouped by arrival airport
-DATA.return     flights and ground options, grouped by departure airport
-DATA.presets    the four rows in the comparison table
-DATA.assumptions  hotel cost, airport buffer, NS peak windows
+meta         dates, passenger count
+fx           RON per euro (also editable in the header)
+assumptions  hotel cost, airport buffer, NS peak windows, overnight cutoff
+nodes        airport and station coordinates, each with its UTC offset in tz
+carriers     KLM fares; Wizz fare parts in RON
+outbound     flights, and ground options grouped by arrival airport
+return       flights, and ground options grouped by departure airport
+presets      the four rows in the comparison table
+paths        [lat, lng] polylines drawn on the map, keyed "FROM-TO"
 ```
 
 A ground option can hold more than one leg (Schiphol to Sloterdijk, then the bus), and the planner
@@ -39,12 +43,22 @@ Schedules come in three shapes:
 
 | Shape | Meaning |
 | --- | --- |
-| `{ every: 60, anchor: "00:59", service: ["05:30","23:30"] }` | Recurring departures |
-| `{ times: ["10:05"] }` | Fixed departures only |
-| `{ tbd: true, wait: 45 }` | Timetable unknown, departure estimated from the arrival |
+| `{"every": 60, "anchor": "00:59", "service": ["05:30","23:30"]}` | Recurring departures |
+| `{"times": ["10:05"]}` | Fixed departures only |
+| `{"tbd": true, "wait": 45}` | Timetable unknown, departure estimated from the arrival |
 
 `priceRON` prices a leg in lei instead of euro, so the exchange rate field in the header moves it.
 `priceDal` is the NS Dal Voordeel price. `unverified: true` marks a price the warning panel lists.
+
+`paths` holds the drawn route. A reverse trip reuses the same entry, reversed, and the return line is
+offset a little so both stay visible. To redraw a path, replace the array with any list of
+`[lat, lng]` points.
+
+## Tiles
+
+OpenStreetMap's own tile server refuses some networks with a 403. The map starts there and switches
+on its own, first to tile.openstreetmap.de, then to Esri's grey canvas basemap. All three need no
+key. Attribution sits in the map corner either way.
 
 ## What was checked and what was not
 
