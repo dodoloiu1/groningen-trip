@@ -434,8 +434,7 @@ td.act{text-align:right}
                 {tbd:true, wait} unknown, estimated from the arrival
      paths: [lat, lng] pairs drawn on the map, one entry per node pair
      ===================================================================== -->
-<script type="application/json" id="trip-data">
-{
+<script type="application/json" id="trip-data">{
  "meta": {
   "title": "Bucharest to Groningen",
   "passengers": 1,
@@ -519,13 +518,15 @@ td.act{text-align:right}
      "id": "basic",
      "name": "Basic",
      "price": 115,
-     "desc": "Small bag 40x30x15 only. No hand baggage. No changes, no refund."
+     "desc": "Small bag 40x30x15 only. No hand baggage. No changes, no refund.",
+     "noChecked": true
     },
     {
      "id": "light",
      "name": "Light",
      "price": 150,
-     "desc": "Hand baggage 55x35x25. Changes cost EUR 70 plus fare difference."
+     "desc": "Hand baggage 55x35x25. Changes cost EUR 70 plus fare difference.",
+     "noChecked": true
     },
     {
      "id": "standard",
@@ -576,6 +577,68 @@ td.act{text-align:right}
      "desc": "Fare plus admin fee. Estimate, not confirmed."
     }
    ]
+  },
+  "tarom": {
+   "name": "TAROM",
+   "fares": [
+    {
+     "id": "light",
+     "name": "Economy Light",
+     "price": 106.32,
+     "noChecked": true,
+     "desc": "Hand bag 8 kg total, no checked bag. Changes cost EUR 80 plus fare difference."
+    },
+    {
+     "id": "saver",
+     "name": "Economy Saver",
+     "price": 136.32,
+     "desc": "One checked bag 23 kg, hand bag 8 kg. Changes cost EUR 80 plus fare difference."
+    },
+    {
+     "id": "optim",
+     "name": "Economy Optim",
+     "price": 261.32,
+     "desc": "One checked bag 23 kg, free seat, refund for EUR 80. Changes cost EUR 60 plus fare difference."
+    },
+    {
+     "id": "flex",
+     "name": "Economy Flex",
+     "price": 425.32,
+     "desc": "Free changes, free refund, one checked bag 23 kg, free seat."
+    },
+    {
+     "id": "business",
+     "name": "Business",
+     "price": 425.32,
+     "desc": "Business cabin. The lowest business fare, seat and bags included."
+    }
+   ],
+   "faresBack": [
+    {
+     "id": "saver",
+     "name": "Economy Saver",
+     "price": 195.23,
+     "desc": "One checked bag 23 kg, hand bag 8 kg. Changes cost EUR 80 plus fare difference."
+    },
+    {
+     "id": "optim",
+     "name": "Economy Optim",
+     "price": 320.23,
+     "desc": "One checked bag 23 kg, free seat, refund for EUR 80. Changes cost EUR 60 plus fare difference."
+    },
+    {
+     "id": "flex",
+     "name": "Economy Flex",
+     "price": 484.23,
+     "desc": "Free changes, free refund, one checked bag 23 kg, free seat."
+    },
+    {
+     "id": "business",
+     "name": "Business",
+     "price": 484.23,
+     "desc": "Business cabin. The lowest business fare, seat and bags included."
+    }
+   ]
   }
  },
  "outbound": {
@@ -615,6 +678,40 @@ td.act{text-align:right}
     "note": "Evening flight. The 10:05 FlixBus is long gone, the train still runs."
    },
    {
+    "id": "tarom-0835",
+    "carrier": "tarom",
+    "name": "TAROM",
+    "sub": "direct, morning",
+    "dep": {
+     "date": "2027-01-28",
+     "time": "08:35",
+     "node": "OTP"
+    },
+    "arr": {
+     "date": "2027-01-28",
+     "time": "10:40",
+     "node": "AMS"
+    },
+    "note": "Nonstop, 3h05, its own metal. Lands at Schiphol, so both ground options are open."
+   },
+   {
+    "id": "tarom-1650",
+    "carrier": "tarom",
+    "name": "TAROM",
+    "sub": "direct, afternoon",
+    "dep": {
+     "date": "2027-01-28",
+     "time": "16:50",
+     "node": "OTP"
+    },
+    "arr": {
+     "date": "2027-01-28",
+     "time": "18:55",
+     "node": "AMS"
+    },
+    "note": "Nonstop, 3h05. Late enough that the 10:05 FlixBus is gone."
+   },
+   {
     "id": "wizz-3071",
     "carrier": "wizz",
     "name": "Wizz Air W4 3071",
@@ -630,27 +727,6 @@ td.act{text-align:right}
      "node": "EIN"
     },
     "note": "Lands at Eindhoven Airport, 25 minutes by bus from Eindhoven Centraal."
-   },
-   {
-    "id": "tarom",
-    "carrier": null,
-    "name": "Tarom",
-    "sub": "not yet added",
-    "disabled": true
-   },
-   {
-    "id": "transavia",
-    "carrier": null,
-    "name": "Transavia",
-    "sub": "not yet added",
-    "disabled": true
-   },
-   {
-    "id": "ryanair",
-    "carrier": null,
-    "name": "Ryanair",
-    "sub": "not yet added",
-    "disabled": true
    }
   ],
   "ground": {
@@ -773,31 +849,7 @@ td.act{text-align:right}
        "note": "Departures at :46 have one change, :16 have two."
       }
      ],
-     "note": "The only realistic way out of Eindhoven Airport."
-    },
-    {
-     "id": "F",
-     "name": "FlixBus Eindhoven to Groningen",
-     "sub": "placeholder",
-     "mode": "bus",
-     "legs": [
-      {
-       "from": "EHV",
-       "to": "GRQ",
-       "mode": "bus",
-       "dur": 210,
-       "priceRON": 55.98,
-       "tbd": true,
-       "sched": {
-        "tbd": true,
-        "wait": 45
-       },
-       "transfer": 20,
-       "operator": "FlixBus"
-      }
-     ],
-     "note": "Timetable not checked. Times shown are estimates until you fill them in.",
-     "unverified": true
+     "note": "The only sensible way out of Eindhoven Airport. There is no FlixBus worth taking: six hours on the road."
     }
    ]
   }
@@ -816,7 +868,42 @@ td.act{text-align:right}
      "node": "OTP"
     },
     "dur": 180,
-    "note": "Times not collected. Departure defaults to the outbound clock time, the arrival is calculated from the 3h00 flight."
+    "note": "Times not collected. Departure defaults to the outbound clock time, the arrival is calculated from the 3h00 flight.",
+    "editable": true
+   },
+   {
+    "id": "tarom-back-1140",
+    "carrier": "tarom",
+    "name": "TAROM",
+    "sub": "direct, late morning",
+    "dep": {
+     "date": "2027-01-30",
+     "time": "11:40",
+     "node": "AMS"
+    },
+    "arr": {
+     "date": "2027-01-30",
+     "time": "16:25",
+     "node": "OTP"
+    },
+    "note": "Nonstop, 2h45. The 08:18 train from Groningen lands you at Schiphol with time to spare."
+   },
+   {
+    "id": "tarom-back-1945",
+    "carrier": "tarom",
+    "name": "TAROM",
+    "sub": "direct, evening",
+    "dep": {
+     "date": "2027-01-30",
+     "time": "19:45",
+     "node": "AMS"
+    },
+    "arr": {
+     "date": "2027-01-30",
+     "time": "23:30",
+     "node": "OTP"
+    },
+    "note": "Nonstop, 2h45. Home just before midnight."
    },
    {
     "id": "wizz-back",
@@ -834,13 +921,6 @@ td.act{text-align:right}
      "node": "OTP"
     },
     "note": "Fixed times. 09:25 is early enough to break the same-day train."
-   },
-   {
-    "id": "tarom-back",
-    "carrier": null,
-    "name": "Tarom",
-    "sub": "not yet added",
-    "disabled": true
    }
   ],
   "ground": {
@@ -971,50 +1051,6 @@ td.act{text-align:right}
       }
      ],
      "note": "No morning connection reaches the airport before 09:25, so the planner puts you in a hotel the night before."
-    },
-    {
-     "id": "F-rev",
-     "name": "FlixBus Groningen to Eindhoven",
-     "sub": "placeholder",
-     "mode": "bus",
-     "splitAt": 1,
-     "splitCity": "EHV",
-     "legs": [
-      {
-       "from": "GRQ",
-       "to": "EHV",
-       "mode": "bus",
-       "dur": 210,
-       "priceRON": 55.98,
-       "tbd": true,
-       "sched": {
-        "tbd": true,
-        "wait": 30
-       },
-       "transfer": 20,
-       "operator": "FlixBus"
-      },
-      {
-       "from": "EHV",
-       "to": "EIN",
-       "mode": "bus",
-       "dur": 25,
-       "price": 5.5,
-       "unverified": true,
-       "key": "busFare",
-       "sched": {
-        "every": 20,
-        "anchor": "00:07",
-        "service": [
-         "06:00",
-         "23:30"
-        ]
-       },
-       "transfer": 10,
-       "operator": "Airport bus"
-      }
-     ],
-     "note": "Timetable not checked. Treat every time here as a guess."
     }
    ]
   }
@@ -1032,6 +1068,21 @@ td.act{text-align:right}
    "back": {
     "flight": "klm-back",
     "fare": "basic",
+    "ground": "A-rev"
+   }
+  },
+  {
+   "id": "tarom-train",
+   "label": "TAROM Saver + direct train",
+   "sub": "another nonstop, own fares",
+   "out": {
+    "flight": "tarom-0835",
+    "fare": "saver",
+    "ground": "A"
+   },
+   "back": {
+    "flight": "tarom-back-1140",
+    "fare": "saver",
     "ground": "A-rev"
    }
   },
@@ -1725,8 +1776,7 @@ td.act{text-align:right}
    ]
   ]
  }
-}
-</script>
+}</script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
@@ -1883,14 +1933,20 @@ function findGround(dir, airport, id) {
   const list = ROOT(dir).ground[airport] || [];
   return list.find(g => g.id === id) || list[0] || null;
 }
-function fareList(carrier) { return carrier === "klm" ? DATA.carriers.klm.fares : DATA.carriers.wizz.fares; }
-function fareById(carrier, id) { const l = fareList(carrier); return l.find(f => f.id === id) || l[0]; }
+function fareList(carrier, dir) {
+  const c = DATA.carriers[carrier];
+  if (!c || !c.fares) return DATA.carriers.wizz.fares;
+  return dir === "back" && c.faresBack ? c.faresBack : c.fares;
+}
+function fareById(carrier, id, dir) { const l = fareList(carrier, dir); return l.find(f => f.id === id) || l[0]; }
 function farePrice(carrier, fareId, dir, sel) {
-  if (carrier === "klm") {
-    const f = fareById("klm", fareId);
+  const c = DATA.carriers[carrier];
+  if (c && Array.isArray(c.fares) && typeof c.fares[0].price === "number") {
+    const f = fareById(carrier, fareId, dir);
     const st = dir === "out" ? sel.out : sel.back;
-    let e = f.price + (f.comfort && st.comfort ? DATA.carriers.klm.comfortPrice : 0);
-    if (dir === "back" && st.price != null && !isNaN(st.price)) e = st.price + (f.comfort && st.comfort ? DATA.carriers.klm.comfortPrice : 0);
+    const comfort = f.comfort && st.comfort && c.comfortPrice ? c.comfortPrice : 0;
+    let e = f.price + comfort;
+    if (dir === "back" && st.price != null && !isNaN(st.price)) e = st.price + comfort;
     return { eur: e, ron: e * sel.ronPerEur };
   }
   const b = DATA.carriers.wizz.bundle[dir === "out" ? "out" : "back"];
@@ -1899,27 +1955,29 @@ function farePrice(carrier, fareId, dir, sel) {
 }
 function flightTimes(f, sel, dir) {
   if (dir === "out") return { dep: at(f.dep.date, f.dep.time, nodeTz(f.dep.node)), arr: at(f.arr.date, f.arr.time, nodeTz(f.arr.node)) };
-  if (f.carrier === "klm") {
+  if (f.editable) {
     const t = sel.back.dep || smartBackDep(sel);
     const dep = at(DATA.meta.backDate, t, 1);
     return { dep, arr: new Date(dep.getTime() + (f.dur || 180) * MIN), derived: true };
   }
   return { dep: at(f.dep.date, f.dep.time, nodeTz(f.dep.node)), arr: at(f.arr.date, f.arr.time, nodeTz(f.arr.node)) };
 }
-function defaultBackDep(sel) {
-  const of = DATA.outbound.flights.find(f => f.id === sel.out.flight);
-  return of && of.carrier === "klm" && of.dep ? of.dep.time : "18:00";
+function carrierTimes(carrier) {
+  return DATA.outbound.flights.filter(f => !f.disabled && f.carrier === carrier && f.dep)
+    .map(f => f.dep.time).sort();
 }
-/* the outbound clock time if that still connects, otherwise an evening departure */
+/* mirror the outbound clock time when that still connects, else the carrier's last departure */
 function smartBackDep(sel) {
-  const cand = defaultBackDep(sel);
   const bf = findFlight("back", sel.back.flight);
-  if (bf.carrier !== "klm") return cand;
+  const times = carrierTimes(bf.carrier);
+  const of = DATA.outbound.flights.find(f => f.id === sel.out.flight);
+  const cand = of && of.dep && of.carrier === bf.carrier ? of.dep.time : (times[0] || "18:00");
   const opt = findGround("back", bf.dep.node, sel.back.ground);
-  if (!opt) return cand;
-  const dep = at(DATA.meta.backDate, cand, 1);
-  const rp = planReturn(opt, dep, DATA.assumptions.airportBuffer);
-  return rp.ok && !rp.overnight ? cand : "18:00";
+  if (opt) {
+    const rp = planReturn(opt, at(DATA.meta.backDate, cand, 1), DATA.assumptions.airportBuffer);
+    if (rp.ok && !rp.overnight) return cand;
+  }
+  return times[times.length - 1] || "18:00";
 }
 
 /* ---------- the plan ---------- */
@@ -1931,7 +1989,7 @@ function compute(sel) {
   // ---- outbound
   const oF = findFlight("out", sel.out.flight);
   const oT = flightTimes(oF, sel, "out");
-  const oFare = fareById(oF.carrier, sel.out.fare);
+  const oFare = fareById(oF.carrier, sel.out.fare, "out");
   const oP = farePrice(oF.carrier, sel.out.fare, "out", sel);
   items.push({ kind: "flight", dir: "out", from: oF.dep.node, to: oF.arr.node, dep: oT.dep, arr: oT.arr,
     title: oF.name, sub: oF.sub, fare: oFare.name, price: oP.eur, priceRon: oP.ron, ronNative: oF.carrier === "wizz",
@@ -1960,7 +2018,7 @@ function compute(sel) {
   if (sel.roundTrip) {
     const bF = findFlight("back", sel.back.flight);
     const bT = flightTimes(bF, sel, "back");
-    const bFare = fareById(bF.carrier, sel.back.fare);
+    const bFare = fareById(bF.carrier, sel.back.fare, "back");
     const bP = farePrice(bF.carrier, sel.back.fare, "back", sel);
     const gOpt = findGround("back", bF.dep.node, sel.back.ground);
 
@@ -2007,7 +2065,7 @@ function compute(sel) {
             body: "The train leaves Groningen " + durText(gap) + " before the flight. Under 3 hours is risky with a checked bag." });
         }
 
-        if (rp.ok && !rp.overnight && bF.carrier === "klm") {
+        if (rp.ok && !rp.overnight && bF.dep.node === "AMS") {
           items.push({ kind: "check", dir: "back", minutes: gap, title: "Buffer at Schiphol",
             note: gap >= 180 ? "Comfortable. Train arrives, then the flight leaves " + durText(gap) + " after you left Groningen."
                              : "Below three hours. Reconsider the flight time." });
@@ -2042,9 +2100,9 @@ function compute(sel) {
     warnings.push({ sev: "warn", title: "Wizz price without the bundle is an estimate",
       body: "RON 498 round trip comes from the two fares plus admin fees. Wizz only sells the free 40x30x20 bag at that price, so a cabin bag costs extra." });
   }
-  if (oF.carrier === "klm" && sel.out.fare === "basic") {
-    warnings.push({ sev: "info", title: "Basic fare carries a small bag only",
-      body: "40x30x15, no hand baggage, no changes. Fine for two nights if you pack small, otherwise look at Light." });
+  if (oFare.noChecked) {
+    warnings.push({ sev: "info", title: oF.name + " " + oFare.name + " has no checked bag",
+      body: oFare.desc + " Two nights fit in hand luggage if you pack small, otherwise take the next fare up." });
   }
   if (sel.dal) {
     const peakLegs = items.filter(i => i.kind === "ground" && i.mode === "train" && i.dal === false);
@@ -2143,7 +2201,7 @@ function renderEditor() {
 
   /* step 1: flight */
   html.push(`<div class="step"><div class="step-head"><span class="step-n">01</span><h3>${dir === "out" ? "Flight from Bucharest" : "Flight back"}</h3>
-    <span class="step-meta">${ROOT(dir).flights.filter(x => !x.disabled).length} options</span></div><div class="opts" role="radiogroup" aria-label="Flight">`);
+    <span class="step-meta">${ROOT(dir).flights.filter(x => !x.disabled).length} flight${ROOT(dir).flights.filter(x => !x.disabled).length === 1 ? "" : "s"}</span></div><div class="opts" role="radiogroup" aria-label="Flight">`);
 
   ROOT(dir).flights.forEach(x => {
     const dis = !!x.disabled;
@@ -2170,25 +2228,29 @@ function renderEditor() {
   html.push(`</div></div>`);
 
   /* step 2: fare */
-  html.push(`<div class="step"><div class="step-head"><span class="step-n">02</span><h3>${carrier === "klm" ? "Fare and baggage" : "Baggage bundle"}</h3>
-    <span class="step-meta">${carrier === "klm" ? "5 fares" : "toggle"}</span></div><div class="opts" role="radiogroup" aria-label="Fare">`);
+  const fareSet = fareList(carrier, dir);
+  if (!fareSet.some(f => f.id === sel[dir].fare)) sel[dir].fare = fareSet[0].id;
+  html.push(`<div class="step"><div class="step-head"><span class="step-n">02</span><h3>${carrier === "wizz" ? "Baggage bundle" : "Fare and baggage"}</h3>
+    <span class="step-meta">${carrier === "wizz" ? "toggle" : fareSet.length + " fares"}</span></div><div class="opts" role="radiogroup" aria-label="Fare">`);
 
-  if (carrier === "klm") {
-    DATA.carriers.klm.fares.forEach(fr => {
+  if (carrier !== "wizz") {
+    fareSet.forEach(fr => {
       const on = fr.id === sel[dir].fare;
-      const p = farePrice("klm", fr.id, dir, { ...sel, [dir]: { ...sel[dir], comfort: false } });
+      const p = farePrice(carrier, fr.id, dir, { ...sel, [dir]: { ...sel[dir], comfort: false } });
       html.push(`<label class="opt ${on ? "sel" : ""}">
         <input type="radio" name="fare-${dir}" value="${fr.id}" ${on ? "checked" : ""}>
         <span><span class="opt-title">${fr.name}</span><span class="opt-note">${fr.desc}</span></span>
         <span class="opt-price">${eur(fr.price)}${fr.comfort ? `<small>+${eur(DATA.carriers.klm.comfortPrice)} comfort</small>` : `<small>one way</small>`}</span></label>`);
     });
-    const cur = fareById("klm", sel[dir].fare);
-    const hasComfort = !!cur.comfort;
-    html.push(`<label class="fare-extra ${hasComfort ? "" : "dis"}">
-      <input type="checkbox" id="comfort" ${sel[dir].comfort && hasComfort ? "checked" : ""} ${hasComfort ? "" : "disabled"}>
-      Economy Comfort (extra legroom)
-      <span class="fare-extra-price">${hasComfort ? "+" + eur(DATA.carriers.klm.comfortPrice) : "Standard and Flex only"}</span></label>`);
-    if (dir === "back") {
+    const cur = fareById(carrier, sel[dir].fare, dir);
+    if (carrier === "klm") {
+      const hasComfort = !!cur.comfort;
+      html.push(`<label class="fare-extra ${hasComfort ? "" : "dis"}">
+        <input type="checkbox" id="comfort" ${sel[dir].comfort && hasComfort ? "checked" : ""} ${hasComfort ? "" : "disabled"}>
+        Economy Comfort (extra legroom)
+        <span class="fare-extra-price">${hasComfort ? "+" + eur(DATA.carriers.klm.comfortPrice) : "Standard and Flex only"}</span></label>`);
+    }
+    if (dir === "back" && f.editable) {
       html.push(`<div class="field">Return fare per person
         <input type="number" id="backPrice" step="0.01" min="0" value="${(sel.back.price != null ? sel.back.price : cur.price).toFixed(2)}" inputmode="decimal"> EUR
         <span class="tbd">not collected</span>
@@ -2217,7 +2279,7 @@ function renderEditor() {
 
   /* step 3: last mile */
   html.push(`<div class="step"><div class="step-head"><span class="step-n">03</span><h3>${dir === "out" ? "Airport to Groningen" : "Groningen to the airport"}</h3>
-    <span class="step-meta">${airport} · ${grounds.length} options</span></div><div class="opts" role="radiogroup" aria-label="Last mile">`);
+    <span class="step-meta">${airport} · ${grounds.length} option${grounds.length === 1 ? "" : "s"}</span></div><div class="opts" role="radiogroup" aria-label="Last mile">`);
 
   grounds.forEach(g => {
     const on = g.id === sel[dir].ground;
@@ -2265,7 +2327,7 @@ function wireEditor() {
     inp.addEventListener("change", () => {
       const f = findFlight(dir, inp.value);
       sel[dir].flight = f.id;
-      sel[dir].fare = fareList(f.carrier)[0].id;
+      sel[dir].fare = fareList(f.carrier, dir)[0].id;
       sel[dir].comfort = false;
       if (dir === "back") { sel.back.dep = null; sel.back.price = null; }
       const airport = dir === "out" ? f.arr.node : f.dep.node;

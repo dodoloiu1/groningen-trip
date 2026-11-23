@@ -16,7 +16,7 @@ Live: https://dodoloiu1.github.io/groningen-trip/
 - A running total in EUR and RON, plus door to door time.
 - Warnings that are worked out, not hard-coded: missing connections, the Wizz 09:25 problem, tight
   airport buffers, Dal Voordeel that does not apply in peak hours.
-- A comparison table with four preset combinations. Load one to edit it.
+- A comparison table with preset combinations. Load one to edit it.
 
 ## The data
 
@@ -62,14 +62,19 @@ key. Attribution sits in the map corner either way.
 
 ## What was checked and what was not
 
-Collected by hand in late November 2026: the KLM fare table, the Wizz RON breakdown for both
-directions, the NS Intercity times and full fares, the Schiphol to Sloterdijk sprinter, the 10:05
-FlixBus, and the Eindhoven train patterns (:46 and :16 northbound, :18 and :48 southbound).
+Collected by hand in late November 2026: the KLM fare table, the TAROM nonstops and both fare
+tables (OTP to AMS 08:35 and 16:50, AMS to OTP 11:40 and 19:45, with the return page missing the
+Light fare entirely), the Wizz RON breakdown for both directions, the NS Intercity times and full
+fares, the Schiphol to Sloterdijk sprinter, the 10:05 FlixBus, and the Eindhoven train patterns
+(:46 and :16 northbound, :18 and :48 southbound).
 
-Not checked, and marked in the app: the Eindhoven airport bus fare and duration, the FlixBus
-timetables to and from Eindhoven, the FlixBus back from Groningen, the AMS to OTP return prices and
-times, and the hotel cost. The Wizz price without the bundle is an estimate built from the two fares
-plus admin fees.
+Not checked, and marked in the app: the Eindhoven airport bus fare and duration, the FlixBus back
+from Groningen, the KLM AMS to OTP return prices and times, and the hotel cost. The Wizz price
+without the bundle is an estimate built from the two fares plus admin fees.
+
+Two options were dropped on purpose. There is no FlixBus worth taking out of Eindhoven (about six
+hours on the road, against three by bus and train), and neither Transavia nor Ryanair flies this
+route, so they are not listed as placeholders.
 
 Train times are pattern-based: the planner assumes a departure every hour or half hour inside
 service hours. Real timetables drift, especially on a Saturday in January. Check the exact trains
