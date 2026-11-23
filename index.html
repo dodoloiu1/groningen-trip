@@ -1,0 +1,1498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Bucharest to Groningen, 28 to 30 January 2027</title>
+<meta name="description" content="Pick a flight, a fare and a last mile for Bucharest to Groningen, 28 to 30 January 2027. The map and the running total follow your choice.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --paper:#f3f0e8;
+  --surface:#fbf9f3;
+  --surface-2:#e9e4d8;
+  --ink:#15191c;
+  --ink-2:#556065;
+  --ink-3:#6d777b;
+  --line:#d9d2c2;
+  --line-2:#b3ab98;
+  --accent:#0b6a57;
+  --accent-2:#07503f;
+  --accent-soft:#dcebe4;
+  --back:#8a3a5b;
+  --back-soft:#f0dfe6;
+  --warn:#7d5200;
+  --warn-soft:#f6ebd3;
+  --danger:#9c2a1b;
+  --danger-soft:#f7e1dc;
+  --r:4px;
+  --shadow:0 1px 1px rgba(21,25,28,.05), 0 10px 28px -16px rgba(21,25,28,.35);
+  --sans:"Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --stick:132px;
+}
+[data-theme="dark"]{
+  --paper:#0c1012;
+  --surface:#131a1d;
+  --surface-2:#1b2429;
+  --ink:#e8e4d9;
+  --ink-2:#9fb0ae;
+  --ink-3:#78888a;
+  --line:#263033;
+  --line-2:#3d4a4e;
+  --accent:#5fcbb0;
+  --accent-2:#8fe0ca;
+  --accent-soft:#13261f;
+  --back:#e08cb0;
+  --back-soft:#2a1720;
+  --warn:#e2a54a;
+  --warn-soft:#2a2010;
+  --danger:#ef7864;
+  --danger-soft:#2c1512;
+  --shadow:0 1px 1px rgba(0,0,0,.4), 0 12px 30px -16px rgba(0,0,0,.8);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;height:100dvh;overflow:hidden;display:flex;flex-direction:column;
+  background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:15px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent);color:var(--surface)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+html{scrollbar-color:var(--line-2) transparent;scrollbar-width:thin}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:20px;border:3px solid var(--paper)}
+::-webkit-scrollbar-track{background:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit;color:inherit}
+h1,h2,h3,p,ol,ul,table{margin:0}
+svg{display:block;flex:none}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:12px;top:12px;z-index:99;background:var(--surface);padding:8px 12px;border:1px solid var(--accent)}
+
+/* ---------- header ---------- */
+.top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{display:flex;align-items:center;gap:18px;padding:12px 22px 10px;flex-wrap:wrap}
+.id{min-width:0;margin-right:auto}
+.route{font-size:21px;font-weight:650;letter-spacing:-.03em;line-height:1.15;display:flex;align-items:center;gap:10px}
+.route .arrow{color:var(--accent);margin-top:2px}
+.route-meta{font-family:var(--mono);font-size:11px;color:var(--ink-2);letter-spacing:.01em;margin-top:4px;text-transform:uppercase}
+.only-narrow{display:none}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rate{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;color:var(--ink-2);
+  border:1px solid var(--line);border-radius:var(--r);padding:6px 9px;background:var(--paper)}
+.rate input{width:56px;border:0;background:transparent;font-family:var(--mono);font-size:12px;padding:0;text-align:right;
+  font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line-2);border-radius:0}
+.rate input:focus{outline:none;border-bottom-color:var(--accent)}
+.ghost{display:flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--line);border-radius:var(--r);
+  padding:7px 11px;font-size:12.5px;color:var(--ink-2);transition:border-color .15s,color .15s}
+.ghost:hover{border-color:var(--line-2);color:var(--ink)}
+.strip{display:flex;align-items:stretch;border-top:1px solid var(--line);background:var(--surface-2);overflow-x:auto;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.fig{padding:7px 18px 9px;border-right:1px solid var(--line);flex:none}
+.fig-label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.fig-val{display:block;font-family:var(--mono);font-size:18px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap;transition:color .3s}
+.fig-val.flash{color:var(--accent)}
+.fig.warn .fig-val.hot{color:var(--warn)}
+.primary{margin-left:auto;display:flex;align-items:center;gap:8px;margin:8px 14px 8px auto;padding:8px 14px;
+  background:var(--accent);color:#fff;border:1px solid var(--accent-2);border-radius:var(--r);font-size:12.5px;font-weight:550;
+  white-space:nowrap;transition:background .15s,transform .06s}
+[data-theme="dark"] .primary{color:#06120f}
+.primary:hover{background:var(--accent-2)}
+[data-theme="dark"] .primary:hover{background:var(--accent-2)}
+.primary:active{transform:translateY(1px)}
+.primary.done{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+
+/* ---------- layout ---------- */
+main{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:grid;grid-template-columns:minmax(0,1fr);
+  align-content:start;-webkit-overflow-scrolling:touch}
+.panel{padding:20px 22px 90px;max-width:760px;min-width:0}
+.mappane{position:sticky;top:0;height:34dvh;background:var(--surface-2);border-bottom:1px solid var(--line);z-index:10;overflow:hidden}
+#map{position:absolute;inset:0;background:var(--surface-2);z-index:0}
+.mappane.collapsed{height:0;border-bottom:0}
+.map-btn{position:absolute;right:10px;bottom:10px;z-index:500;background:var(--surface);border:1px solid var(--line-2);
+  border-radius:var(--r);padding:5px 10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-2);box-shadow:var(--shadow)}
+.legend{position:absolute;left:10px;bottom:10px;z-index:500;background:var(--surface);border:1px solid var(--line-2);
+  border-radius:var(--r);padding:7px 9px;box-shadow:var(--shadow);font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);max-width:calc(100% - 90px)}
+.lg-dir{display:flex;gap:14px;margin-bottom:5px}
+.lg-dir span{display:flex;align-items:center;gap:5px}
+.lg-dir i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.lg-modes{display:flex;gap:10px}
+.lg-modes span{display:flex;align-items:center;gap:4px}
+
+@media (min-width:1000px){
+  main{grid-template-columns:minmax(0,1fr) minmax(0,1.02fr)}
+  .mappane{grid-column:2;grid-row:1;top:0;height:calc(100dvh - var(--stick));border-bottom:0;border-left:1px solid var(--line)}
+  .panel{grid-column:1;grid-row:1}
+  .top{position:sticky}
+  .map-btn{display:none}
+}
+
+/* ---------- blocks ---------- */
+.block{padding:22px 0;border-top:1px solid var(--line)}
+.block:first-child{border-top:0;padding-top:6px}
+h2{font-size:12px;font-weight:620;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+h2::after{content:"";height:1px;flex:1;background:var(--line)}
+.lede{font-size:13px;color:var(--ink-2);margin:-6px 0 12px;max-width:60ch}
+
+/* ---------- direction bar ---------- */
+.dirbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.seg{display:flex;border:1px solid var(--line-2);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.seg button{background:transparent;border:0;padding:8px 14px;font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:7px;transition:background .15s,color .15s}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button span{font-family:var(--mono);font-size:10px;letter-spacing:.05em;opacity:.75}
+.seg button.on{background:var(--ink);color:var(--paper)}
+.seg button.on span{opacity:.85}
+.seg button:disabled{opacity:.4;cursor:not-allowed}
+.switch{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2);cursor:pointer;margin-left:auto}
+.switch input{appearance:none;width:32px;height:18px;border-radius:20px;background:var(--line-2);position:relative;transition:background .18s;margin:0;cursor:pointer}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--surface);transition:transform .18s;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.switch input:checked{background:var(--accent)}
+.switch input:checked::after{transform:translateX(14px)}
+.dal-switch{margin:12px 0 0;padding:9px 12px;border:1px dashed var(--line-2);border-radius:var(--r);align-items:flex-start}
+.dal-switch span{display:block}
+.dal-switch em{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:2px;line-height:1.35}
+.dal-switch input{margin-top:1px}
+
+/* ---------- steps ---------- */
+.step{padding:14px 0 4px;border-top:1px dashed var(--line)}
+.step:first-of-type{border-top:0;padding-top:0}
+.step-head{display:flex;align-items:baseline;gap:9px;margin-bottom:9px}
+.step-n{font-family:var(--mono);font-size:10.5px;color:var(--accent);letter-spacing:.06em}
+.step-head h3{font-size:13.5px;font-weight:600;letter-spacing:-.005em}
+.step-meta{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;text-align:right}
+
+/* ---------- options ---------- */
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{display:grid;grid-template-columns:15px minmax(0,1fr) auto;gap:11px;align-items:start;
+  padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  cursor:pointer;transition:border-color .14s,background .14s;position:relative}
+.opt:hover{border-color:var(--line-2)}
+.opt input{appearance:none;margin:3px 0 0;width:15px;height:15px;border:1.5px solid var(--line-2);border-radius:50%;
+  flex:none;transition:border-color .14s,border-width .1s;cursor:pointer}
+.opt input:checked{border:4.5px solid var(--accent);background:var(--surface)}
+.opt input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.opt.sel{background:var(--accent-soft);border-color:var(--accent)}
+.opt-title{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;font-size:14px;font-weight:560;letter-spacing:-.01em}
+.opt-sub{font-family:var(--mono);font-size:10px;color:var(--ink-2);letter-spacing:.04em;text-transform:uppercase}
+.opt-detail{display:block;font-family:var(--mono);font-size:11.5px;color:var(--ink-2);margin-top:3px;font-variant-numeric:tabular-nums}
+.opt-note{display:block;font-size:11.5px;color:var(--ink-2);margin-top:5px;max-width:52ch;line-height:1.4}
+.opt-price{font-family:var(--mono);font-size:13.5px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding-top:1px}
+.opt-price small{display:block;font-size:9.5px;color:var(--ink-3);letter-spacing:.05em;text-transform:uppercase;margin-top:2px;font-family:var(--sans)}
+.opt.off{opacity:.5;cursor:not-allowed;background:transparent}
+.opt.off:hover{border-color:var(--line)}
+.opt.off input{pointer-events:none}
+.chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 5px;border-radius:2px;border:1px solid var(--line-2);color:var(--ink-2);white-space:nowrap}
+.chip.bad{border-color:var(--danger);color:var(--danger);background:var(--danger-soft)}
+.chip.good{border-color:var(--accent);color:var(--accent)}
+.chip.warn{border-color:var(--warn);color:var(--warn);background:var(--warn-soft)}
+.chip.them{justify-self:end}
+
+/* fare extras */
+.fare-extra{display:flex;align-items:center;gap:9px;margin-top:9px;padding:9px 12px;border:1px dashed var(--line-2);
+  border-radius:var(--r);font-size:12px;color:var(--ink-2);cursor:pointer}
+.fare-extra input{appearance:none;width:14px;height:14px;border:1.5px solid var(--line-2);border-radius:2px;margin:0;transition:background .14s,border-color .14s}
+.fare-extra input:checked{background:var(--accent);border-color:var(--accent);
+  background-image:linear-gradient(var(--surface),var(--surface));background-size:6px 2px;background-repeat:no-repeat;background-position:center}
+.fare-extra.dis{opacity:.55;cursor:not-allowed}
+.fare-extra .fare-extra-price{margin-left:auto;font-family:var(--mono);font-size:12px}
+
+/* small inputs inside panels */
+.field{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);margin-top:9px;flex-wrap:wrap}
+.field input{width:76px;padding:4px 7px;background:var(--paper);border:1px solid var(--line-2);border-radius:3px;
+  font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}
+.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.field input[type="time"]{width:86px;text-align:center}
+.field .tbd{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--warn)}
+.linkbtn{background:transparent;border:0;padding:0;font-size:11px;color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+
+/* ---------- itinerary ---------- */
+.dirsep{display:flex;align-items:center;gap:10px;margin:6px 0 14px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.dirsep b{font-weight:600;color:var(--ink)}
+.dirsep .ln{flex:1;height:1px;background:var(--line)}
+.route-list{list-style:none;padding:0;position:relative}
+.leg{position:relative;padding:0 0 18px 32px}
+.route-list.anim .leg{animation:legIn .34s cubic-bezier(.16,1,.3,1) backwards;animation-delay:calc(var(--i,0)*22ms)}
+@keyframes legIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.leg::before{content:"";position:absolute;left:8px;top:20px;bottom:2px;width:1px;background:var(--line)}
+.leg:last-child::before{display:none}
+.leg .dot{position:absolute;left:0;top:1px;width:17px;height:17px;border-radius:50%;background:var(--surface);
+  border:1px solid var(--line-2);display:grid;place-items:center;color:var(--accent)}
+.leg.back .dot{color:var(--back)}
+.leg.stay .dot{border-style:dashed}
+.leg.stay::before{background:repeating-linear-gradient(to bottom,var(--line) 0 4px,transparent 4px 8px)}
+.leg-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.leg-time{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.leg-time .arr{color:var(--ink-2)}
+.leg-time .arr::before{content:"→";margin:0 5px;color:var(--ink-3);font-family:var(--sans)}
+.leg-price{margin-left:auto;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.leg-price .ron{display:block;font-size:9.5px;color:var(--ink-3);text-align:right;letter-spacing:.03em}
+.leg-title{font-size:13.5px;font-weight:550;margin-top:3px}
+.leg-meta{font-size:11.5px;color:var(--ink-2);margin-top:2px;font-family:var(--mono);line-height:1.5}
+.leg-meta em{font-style:normal;color:var(--ink-3)}
+.leg-note{font-size:11.5px;color:var(--ink-2);margin-top:4px;max-width:56ch}
+.leg.stay .leg-title{font-weight:500;color:var(--ink-2)}
+.sum-row{display:flex;justify-content:space-between;gap:14px;padding:12px 0 0;margin-top:6px;border-top:1px solid var(--line-2);
+  font-family:var(--mono);font-size:12px;letter-spacing:.02em;flex-wrap:wrap}
+.sum-row b{font-weight:600}
+
+/* ---------- warnings ---------- */
+.warn{border:1px solid var(--line-2);border-radius:var(--r);padding:11px 13px;background:var(--surface);
+  display:grid;grid-template-columns:17px minmax(0,1fr);gap:10px;align-items:start}
+.warn + .warn{margin-top:8px}
+.warn h4{margin:0;font-size:13px;font-weight:600;letter-spacing:-.005em}
+.warn p{margin:3px 0 0;font-size:12px;color:var(--ink-2);line-height:1.45;max-width:58ch}
+.warn.stop{border-color:var(--danger);background:var(--danger-soft)}
+.warn.stop .wi{color:var(--danger)}
+.warn.warn-lvl{border-color:var(--warn);background:var(--warn-soft)}
+.warn.warn-lvl .wi{color:var(--warn)}
+.warn.info .wi{color:var(--ink-3)}
+.wi{margin-top:1px}
+.cleanline{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--accent);padding:10px 0}
+
+/* ---------- comparison ---------- */
+.tw{overflow-x:auto;margin:0 -4px;padding:0 4px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:500;padding:0 8px 6px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.cur td{background:var(--accent-soft)}
+tr.cur .tname{font-weight:600}
+tr.cur .tname span{color:var(--accent)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:12px}
+td.act{text-align:right}
+.usebtn{background:transparent;border:1px solid var(--line-2);border-radius:3px;padding:3px 8px;font-size:10.5px;
+  font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);transition:border-color .14s,color .14s}
+.usebtn:hover{border-color:var(--accent);color:var(--accent)}
+.tname{font-weight:520;line-height:1.3}
+.tname span{display:block;font-size:10.5px;color:var(--ink-2);font-weight:400;font-family:var(--mono);margin-top:2px}
+
+/* ---------- footer ---------- */
+.foot{border-top:1px solid var(--line);padding:18px 0 0;margin-top:10px;font-size:11.5px;color:var(--ink-2);line-height:1.55}
+.foot p + p{margin-top:8px}
+.foot b{color:var(--ink-2);font-weight:550}
+
+/* ---------- leaflet theming ---------- */
+.leaflet-container{background:var(--surface-2);font-family:var(--sans)}
+.leaflet-control-attribution{font-size:9px!important;background:color-mix(in srgb, var(--surface) 82%, transparent)!important;color:var(--ink-3)!important}
+.leaflet-control-attribution a{color:var(--ink-2)!important}
+.leaflet-bar{border:1px solid var(--line-2)!important;box-shadow:var(--shadow)!important}
+.leaflet-bar a{background:var(--surface)!important;color:var(--ink)!important;border-bottom-color:var(--line)!important}
+.leaflet-bar a:hover{background:var(--surface-2)!important}
+.leaflet-tooltip{background:var(--surface);color:var(--ink);border:1px solid var(--line-2);border-radius:3px;
+  box-shadow:var(--shadow);font-size:11px;font-family:var(--mono);padding:4px 7px}
+.leaflet-tooltip-top::before{border-top-color:var(--line-2)}
+.node-label{background:transparent!important;border:0!important;box-shadow:none!important;color:var(--ink);
+  font-family:var(--mono)!important;font-size:9.5px!important;letter-spacing:.06em;font-weight:500;padding:0!important}
+.node-label::before{display:none!important}
+.map-tiles-dim{filter:saturate(.55) contrast(.95)}
+[data-theme="dark"] .map-tiles-dim{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) saturate(.5)}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+@media (max-width:999px){
+  .route{font-size:18px;gap:7px}
+  .route .arrow{width:17px;height:13px}
+  .top-in{padding:9px 14px 8px;gap:10px}
+  .route-meta{font-size:9.5px;letter-spacing:.03em;margin-top:3px;white-space:nowrap}
+  .only-wide{display:none}
+  .only-narrow{display:inline}
+  .fig{padding:6px 11px 7px}
+  .fig-label{font-size:9px;letter-spacing:.08em}
+  .fig-val{font-size:14.5px}
+  .primary{margin:6px 10px 6px auto;padding:7px 9px}
+  .primary span{display:none}
+  .panel{padding:16px 15px 80px}
+  .mappane{height:32dvh}
+  .map-btn{top:10px;right:10px;bottom:auto}
+  .legend{padding:5px 7px;font-size:8.5px;bottom:8px;left:8px}
+  .lg-dir{gap:10px;margin-bottom:3px}
+  .lg-modes{gap:7px}
+  .ghost{padding:6px 8px}
+  .ghost span{display:none}
+  .rate{font-size:9.5px;padding:5px 7px;gap:4px}
+  .rate input{width:44px;font-size:10.5px}
+  .opt-detail{font-size:11px}
+  .opt{padding:9px 10px;gap:9px}
+  .opt-price{font-size:12.5px}
+  h2{margin-bottom:11px}
+  .seg button{padding:7px 11px;font-size:12px}
+  .switch{margin-left:0}
+}
+@media (max-width:420px){
+  .primary{padding:7px 11px;font-size:11.5px}
+  .strip .primary{margin-left:10px}
+  .fig-val{font-size:14.5px}
+  .fig-label{font-size:9px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#editor">Skip to the planner</a>
+
+<header class="top" id="top">
+  <div class="top-in">
+    <div class="id">
+      <h1 class="route">Bucharest
+        <svg class="arrow" width="20" height="16" viewBox="0 0 20 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8h16M11 2l6 6-6 6"/></svg>
+        Groningen</h1>
+      <p class="route-meta">OTP to GRQ<span class="only-wide"> / Thu 28 Jan 2027 / Sat 30 Jan 2027</span><span class="only-narrow"> / 28 to 30 Jan 2027</span> / 1 passenger</p>
+    </div>
+    <div class="tools">
+      <label class="rate" title="Editable exchange rate">1 EUR =
+        <input id="rate" type="number" value="5.10" step="0.01" min="1" inputmode="decimal" aria-label="RON per euro"> RON
+      </label>
+      <button class="ghost" id="theme" aria-pressed="false">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 13A9 9 0 0 1 11 3a9 9 0 1 0 10 10Z"/></svg>
+        <span id="themeLabel">Dark</span>
+      </button>
+    </div>
+  </div>
+  <div class="strip">
+    <div class="fig"><span class="fig-label">Total EUR</span><span class="fig-val" id="fEur">0.00</span></div>
+    <div class="fig"><span class="fig-label">In RON</span><span class="fig-val" id="fRon">0.00</span></div>
+    <div class="fig"><span class="fig-label">Door to door</span><span class="fig-val" id="fDur">0h</span></div>
+    <div class="fig" id="figWarn"><span class="fig-label">Warnings</span><span class="fig-val" id="fWarn">0</span></div>
+    <button class="primary" id="copy">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5H6a1 1 0 0 0-1 1v9"/></svg>
+      <span id="copyLabel">Copy summary</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <aside class="mappane" id="mappane">
+    <div id="map"></div>
+    <div class="legend">
+      <div class="lg-dir">
+        <span><i style="background:#0b6a57"></i>Out</span>
+        <span><i style="background:#8a3a5b"></i>Return</span>
+      </div>
+      <div class="lg-modes">
+        <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/></svg>Flight</span>
+        <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="currentColor" stroke-width="2.5"/></svg>Train</span>
+        <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="currentColor" stroke-width="2.5" stroke-dasharray="1 4" stroke-linecap="round"/></svg>Bus</span>
+      </div>
+    </div>
+    <button class="map-btn" id="mapToggle" aria-expanded="true">Hide map</button>
+  </aside>
+
+  <div class="panel">
+    <section class="block">
+      <div class="dirbar">
+        <div class="seg" role="group" aria-label="Which journey to edit">
+          <button data-dir="out" class="on" aria-pressed="true">Outbound <span>28 Jan</span></button>
+          <button data-dir="back" aria-pressed="false">Return <span>30 Jan</span></button>
+        </div>
+        <label class="switch"><input type="checkbox" id="roundtrip" checked> Round trip</label>
+      </div>
+      <div id="editor"></div>
+    </section>
+
+    <section class="block">
+      <h2>Your itinerary</h2>
+      <ol class="route-list" id="timeline"></ol>
+    </section>
+
+    <section class="block">
+      <h2>Warnings</h2>
+      <div id="warnings"></div>
+    </section>
+
+    <section class="block">
+      <h2>Combo comparison</h2>
+      <p class="lede">Four preset combinations, priced with the rate and toggles above. Load one to edit it.</p>
+      <div class="tw"><table id="compare"></table></div>
+    </section>
+
+    <footer class="foot">
+      <p><b>One passenger</b>, prices per person per direction. Times are local: Romania is one hour ahead of the Netherlands. A flight is dashed, a train solid, a bus dotted on the map.</p>
+      <p>Fares, timetables and the FlixBus routes were collected by hand in late November 2026. Re-check them before booking. Anything tagged unverified is a placeholder you can edit here.</p>
+    </footer>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* =======================================================================
+   EDITABLE DATA
+   Everything the planner knows lives in this one object. To add a flight,
+   a fare or a ground option, copy an entry and change the fields. Nothing
+   else in the file has to change.
+
+   Times are strings "HH:MM" in the local time of that node.
+   Prices are EUR per person unless the field is priceRON.
+   Schedule shapes:
+     { every: 60, anchor: "00:59", service: ["05:30","23:30"] }  recurring
+     { times: ["10:05"] }                                       fixed departures
+     { tbd: true, wait: 45 }                                    unknown, estimated
+   ======================================================================= */
+const DATA = {
+  meta: {
+    title: "Bucharest to Groningen",
+    passengers: 1,
+    outDate: "2027-01-28",
+    backDate: "2027-01-30"
+  },
+
+  /* exchange rate; also editable in the header */
+  fx: { ronPerEur: 5.10 },
+
+  assumptions: {
+    hotelNight: 60,        // EUR, unverified, editable in the warnings panel
+    airportBuffer: 48,     // minutes at the airport before departure
+    peakWindows: [["06:30","09:00"],["16:00","18:30"]], // NS peak, Mon-Fri
+    hotelCutoff: "22:00"   // latest arrival we accept for an overnight plan
+  },
+
+  nodes: {
+    OTP: { name: "Bucharest Henri Coanda", short: "OTP", city: "Bucharest",   lat: 44.5711, lng: 26.0857, tz: 2 },
+    AMS: { name: "Amsterdam Schiphol",     short: "AMS", city: "Schiphol",     lat: 52.3086, lng: 4.7639,  tz: 1 },
+    SLO: { name: "Amsterdam Sloterdijk",   short: "SLO", city: "Amsterdam",   lat: 52.3890, lng: 4.8375,  tz: 1 },
+    EIN: { name: "Eindhoven Airport",      short: "EIN", city: "Eindhoven",   lat: 51.4501, lng: 5.3747,  tz: 1 },
+    EHV: { name: "Eindhoven Centraal",     short: "EHV", city: "Eindhoven",   lat: 51.4433, lng: 5.4814,  tz: 1 },
+    GRQ: { name: "Groningen Centraal",     short: "GRQ", city: "Groningen",   lat: 53.2110, lng: 6.5641,  tz: 1 }
+  },
+
+  carriers: {
+    klm: {
+      name: "KLM",
+      comfortPrice: 21,
+      fares: [
+        { id:"basic",    name:"Basic",    price:115, desc:"Small bag 40x30x15 only. No hand baggage. No changes, no refund." },
+        { id:"light",    name:"Light",    price:150, desc:"Hand baggage 55x35x25. Changes cost EUR 70 plus fare difference." },
+        { id:"standard", name:"Standard", price:176, desc:"One checked bag 23 kg. Free seat at check-in. Economy Comfort +EUR 21.", comfort:true },
+        { id:"flex",     name:"Flex",     price:241, desc:"Checked bag, SkyPriority. Free changes. Refundable before departure.", comfort:true },
+        { id:"business", name:"Business", price:319, desc:"Business cabin: baggage, seat and lounge access where available." }
+      ]
+    },
+    wizz: {
+      name: "Wizz Air",
+      /* RON, quoted round trip. Bundle is the baggage toggle. */
+      bundle: {
+        label: "Smart fare bundle",
+        out:  { flightRON: 174, bundleRON: 206.86, adminRON: 45 },
+        back: { flightRON: 234, bundleRON: 268.69, adminRON: 45 }
+      },
+      fares: [
+        { id:"bundle",   name:"Smart fare bundle", desc:"Bundle as quoted. Confirm the bag allowance at checkout." },
+        { id:"nobundle", name:"Free small bag only", desc:"Fare plus admin fee. Estimate, not confirmed." }
+      ]
+    }
+  },
+
+  outbound: {
+    flights: [
+      { id:"klm-0600", carrier:"klm", name:"KLM", sub:"direct, morning",
+        dep:{ date:"2027-01-28", time:"06:00", node:"OTP" },
+        arr:{ date:"2027-01-28", time:"08:00", node:"AMS" },
+        note:"Morning flight. Leaves enough time for the FlixBus from Sloterdijk." },
+      { id:"klm-1800", carrier:"klm", name:"KLM", sub:"direct, evening",
+        dep:{ date:"2027-01-28", time:"18:00", node:"OTP" },
+        arr:{ date:"2027-01-28", time:"20:00", node:"AMS" },
+        note:"Evening flight. The 10:05 FlixBus is long gone, the train still runs." },
+      { id:"wizz-3071", carrier:"wizz", name:"Wizz Air W4 3071", sub:"direct",
+        dep:{ date:"2027-01-28", time:"06:50", node:"OTP" },
+        arr:{ date:"2027-01-28", time:"08:50", node:"EIN" },
+        note:"Lands at Eindhoven Airport, 25 minutes by bus from Eindhoven Centraal." },
+      { id:"tarom",   carrier:null, name:"Tarom",      sub:"not yet added", disabled:true },
+      { id:"transavia", carrier:null, name:"Transavia", sub:"not yet added", disabled:true },
+      { id:"ryanair", carrier:null, name:"Ryanair",    sub:"not yet added", disabled:true }
+    ],
+    ground: {
+      AMS: [
+        { id:"A", name:"NS Intercity to Groningen", sub:"direct", mode:"train",
+          legs:[ { from:"AMS", to:"GRQ", mode:"train", dur:132, price:33.30, priceDal:19.98,
+                   sched:{ every:60, anchor:"00:59", service:["05:30","23:30"] }, transfer:20,
+                   operator:"NS Intercity",
+                   note:"Direct. Other departures run at :03 and :29 with one or two changes, and at :33 with three." } ],
+          note:"Straightforward and fastest." },
+        { id:"BC", name:"Sprinter to Sloterdijk, then FlixBus", sub:"2 changes of mode", mode:"bus",
+          legs:[ { from:"AMS", to:"SLO", mode:"train", dur:10, price:4.60, priceDal:2.76,
+                   sched:{ every:10, anchor:"00:18", service:["05:00","23:59"] }, transfer:15, operator:"NS Sprinter" },
+                 { from:"SLO", to:"GRQ", mode:"bus", dur:135, priceRON:55.98,
+                   sched:{ times:["10:05"] }, transfer:20, operator:"FlixBus",
+                   note:"Wifi and power on board. Only the 10:05 departure was checked, there are about ten a day." } ],
+          note:"Cheapest, about an hour slower, and only works after a morning landing." }
+      ],
+      EIN: [
+        { id:"DE", name:"Airport bus, then NS to Groningen", sub:"1 change", mode:"train",
+          legs:[ { from:"EIN", to:"EHV", mode:"bus", dur:25, price:5.50, unverified:true, key:"busFare",
+                   sched:{ every:20, anchor:"00:07", service:["06:00","23:30"] }, transfer:20, operator:"Airport bus",
+                   note:"Fare and duration not checked yet. Editable." },
+                 { from:"EHV", to:"GRQ", mode:"train", dur:176, price:33.30, priceDal:19.98,
+                   sched:{ every:30, anchor:"00:46", service:["05:30","23:00"] }, transfer:10, operator:"NS Intercity",
+                   note:"Departures at :46 have one change, :16 have two." } ],
+          note:"The only realistic way out of Eindhoven Airport." },
+        { id:"F", name:"FlixBus Eindhoven to Groningen", sub:"placeholder", mode:"bus",
+          legs:[ { from:"EHV", to:"GRQ", mode:"bus", dur:210, priceRON:55.98, tbd:true,
+                   sched:{ tbd:true, wait:45 }, transfer:20, operator:"FlixBus" } ],
+          note:"Timetable not checked. Times shown are estimates until you fill them in.",
+          unverified:true }
+      ]
+    }
+  },
+
+  return: {
+    flights: [
+      { id:"klm-back", carrier:"klm", name:"KLM", sub:"AMS to OTP",
+        dep:{ node:"AMS" }, arr:{ node:"OTP" }, dur:180,
+        note:"Times not collected. Departure defaults to the outbound clock time, the arrival is calculated from the 3h00 flight." },
+      { id:"wizz-back", carrier:"wizz", name:"Wizz Air W4 3072", sub:"EIN to OTP",
+        dep:{ date:"2027-01-30", time:"09:25", node:"EIN" },
+        arr:{ date:"2027-01-30", time:"13:10", node:"OTP" },
+        note:"Fixed times. 09:25 is early enough to break the same-day train." },
+      { id:"tarom-back", carrier:null, name:"Tarom", sub:"not yet added", disabled:true }
+    ],
+    ground: {
+      AMS: [
+        { id:"A-rev", name:"NS Intercity to Schiphol", sub:"direct", mode:"train", splitAt:1, splitCity:"AMS",
+          legs:[ { from:"GRQ", to:"AMS", mode:"train", dur:132, price:33.30, priceDal:19.98,
+                   sched:{ every:30, anchor:"00:18", service:["05:30","23:00"] }, transfer:15, operator:"NS Intercity",
+                   note:"Two per hour. The example run is 08:48 to 11:00." } ],
+          note:"The planner picks the last train that still makes the flight." },
+        { id:"BC-rev", name:"FlixBus to Sloterdijk, then Sprinter", sub:"placeholder", mode:"bus", splitAt:1, splitCity:"AMS", noOvernight:true,
+          legs:[ { from:"GRQ", to:"SLO", mode:"bus", dur:135, priceRON:55.98, tbd:true,
+                   sched:{ tbd:true, wait:30 }, transfer:20, operator:"FlixBus",
+                   note:"Return timetable not checked. Price taken from the outbound." },
+                 { from:"SLO", to:"AMS", mode:"train", dur:10, price:4.60, priceDal:2.76,
+                   sched:{ every:10, anchor:"00:18", service:["05:00","23:59"] }, transfer:10, operator:"NS Sprinter" } ],
+          note:"Placeholder schedule. Verify the bus before you rely on it." }
+      ],
+      EIN: [
+        { id:"E-rev", name:"NS to Eindhoven, then airport bus", sub:"1 change", mode:"train", splitAt:1, splitCity:"EHV",
+          legs:[ { from:"GRQ", to:"EHV", mode:"train", dur:176, price:33.30, priceDal:19.98,
+                   sched:{ every:30, anchor:"00:18", service:["05:30","23:00"] }, transfer:15, operator:"NS Intercity",
+                   note:"Departures at :18 have one change, :48 have two. Example: 06:18 to 09:14." },
+                 { from:"EHV", to:"EIN", mode:"bus", dur:25, price:5.50, unverified:true, key:"busFare",
+                   sched:{ every:20, anchor:"00:07", service:["06:00","23:30"] }, transfer:10, operator:"Airport bus",
+                   note:"Fare and duration not checked yet. Editable." } ],
+          note:"No morning connection reaches the airport before 09:25, so the planner puts you in a hotel the night before." },
+        { id:"F-rev", name:"FlixBus Groningen to Eindhoven", sub:"placeholder", mode:"bus", splitAt:1, splitCity:"EHV",
+          legs:[ { from:"GRQ", to:"EHV", mode:"bus", dur:210, priceRON:55.98, tbd:true,
+                   sched:{ tbd:true, wait:30 }, transfer:20, operator:"FlixBus" },
+                 { from:"EHV", to:"EIN", mode:"bus", dur:25, price:5.50, unverified:true, key:"busFare",
+                   sched:{ every:20, anchor:"00:07", service:["06:00","23:30"] }, transfer:10, operator:"Airport bus" } ],
+          note:"Timetable not checked. Treat every time here as a guess." }
+      ]
+    }
+  },
+
+  /* the comparison table; each entry is a full selection */
+  presets: [
+    { id:"klm-train", label:"KLM Basic + direct train", sub:"cheapest KLM, fastest ground",
+      out:{ flight:"klm-0600", fare:"basic", ground:"A" },
+      back:{ flight:"klm-back", fare:"basic", ground:"A-rev" } },
+    { id:"klm-bus", label:"KLM Basic + Sprinter and FlixBus", sub:"cheapest ground, one hour slower",
+      out:{ flight:"klm-0600", fare:"basic", ground:"BC" },
+      back:{ flight:"klm-back", fare:"basic", ground:"BC-rev" } },
+    { id:"wizz-bundle", label:"Wizz bundle + bus and train", sub:"with hotel night",
+      out:{ flight:"wizz-3071", fare:"bundle", ground:"DE" },
+      back:{ flight:"wizz-back", fare:"bundle", ground:"E-rev" } },
+    { id:"wizz-basic", label:"Wizz without bundle + bus and train", sub:"with hotel night",
+      out:{ flight:"wizz-3071", fare:"nobundle", ground:"DE" },
+      back:{ flight:"wizz-back", fare:"nobundle", ground:"E-rev" } }
+  ]
+};
+/* ===================== end of data ===================== */
+
+/* ---------- tiny helpers ---------- */
+const $ = (s, r) => (r || document).querySelector(s);
+const pad = n => String(n).padStart(2, "0");
+const nodeTz = k => DATA.nodes[k].tz;
+const hmt = s => { const [h, m] = s.split(":").map(Number); return h * 60 + m; };
+const mt = m => pad(Math.floor(m / 60) % 24) + ":" + pad(m % 60);
+const eur = n => "€" + n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const ron = n => n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const MIN = 60000;
+
+function at(dateStr, timeStr, tz) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const [hh, mm] = timeStr.split(":").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, hh - tz, mm));
+}
+function partsIn(d, tz) {
+  const x = new Date(d.getTime() + tz * 3600000);
+  return { y: x.getUTCFullYear(), m: x.getUTCMonth() + 1, d: x.getUTCDate(), hh: x.getUTCHours(), mm: x.getUTCMinutes(), dow: x.getUTCDay() };
+}
+const localDay = (d, tz) => { const p = partsIn(d, tz); return `${p.y}-${pad(p.m)}-${pad(p.d)}`; };
+const fmtT = (d, tz) => { const p = partsIn(d, tz); return pad(p.hh) + ":" + pad(p.mm); };
+function addDays(dateStr, n) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const x = new Date(Date.UTC(y, m - 1, d + n));
+  return `${x.getUTCFullYear()}-${pad(x.getUTCMonth() + 1)}-${pad(x.getUTCDate())}`;
+}
+function dayName(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+}
+function durText(mins) {
+  if (mins == null || isNaN(mins)) return "?";
+  const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+  return (h ? h + "h " : "") + pad(m) + "m";
+}
+function nightsBetween(a, b, tz) {
+  const s = Date.parse(localDay(a, tz) + "T00:00:00Z"), e = Date.parse(localDay(b, tz) + "T00:00:00Z");
+  return Math.round((e - s) / 86400000);
+}
+
+/* ---------- schedule engine ---------- */
+function allDepartures(leg, dayStr) {
+  const tz = nodeTz(leg.from);
+  const [s, e] = (leg.sched && leg.sched.service) || ["05:00", "23:59"];
+  const sm = hmt(s), em = hmt(e), out = [];
+  if (leg.sched && leg.sched.times) {
+    for (const t of leg.sched.times) { const m = hmt(t); if (m >= sm && m <= em) out.push(at(dayStr, t, tz)); }
+  } else if (leg.sched && leg.sched.every) {
+    const anchor = hmt(leg.sched.anchor || "00:00");
+    for (let m = anchor; m < 1440; m += leg.sched.every) if (m >= sm && m <= em) out.push(at(dayStr, mt(m), tz));
+  }
+  return out.sort((a, b) => a - b);
+}
+function nextDeparture(leg, ready) {
+  const tz = nodeTz(leg.from);
+  if (leg.sched && leg.sched.tbd) return { dep: new Date(ready.getTime() + (leg.sched.wait || 45) * MIN), tbd: true };
+  /* same local day only: a departure the next morning is not a connection */
+  for (const d of allDepartures(leg, localDay(ready, tz))) if (d.getTime() >= ready.getTime()) return { dep: d };
+  return null;
+}
+function chainFrom(legs, firstDep) {
+  let cursor = firstDep;
+  const out = [];
+  for (let i = 0; i < legs.length; i++) {
+    const l = legs[i];
+    let dep = firstDep, tbd = !!(l.sched && l.sched.tbd);
+    if (i > 0) {
+      const ready = new Date(cursor.getTime() + (l.transfer || 10) * MIN);
+      const nx = nextDeparture(l, ready);
+      if (!nx) return { ok: false, legs: out, at: cursor, failedOn: l };
+      dep = nx.dep; tbd = !!nx.tbd;
+    }
+    const arr = new Date(dep.getTime() + l.dur * MIN);
+    out.push({ leg: l, dep, arr, tbd });
+    cursor = arr;
+  }
+  return { ok: true, legs: out, arr: cursor, dep: firstDep };
+}
+function chainAfter(legs, arrival) {
+  const first = legs[0];
+  const ready = new Date(arrival.getTime() + (first.transfer || 10) * MIN);
+  const nx = nextDeparture(first, ready);
+  if (!nx) return { ok: false, failedOn: first, at: ready };
+  return chainFrom(legs, nx.dep);
+}
+function bestChain(legs, deadline, day) {
+  if (!legs.length) return null;
+  const first = legs[0];
+  let cands;
+  if (first.sched && first.sched.tbd) {
+    const rest = legs.slice(1).reduce((a, l) => a + l.dur + (l.transfer || 10), 0);
+    cands = [new Date(deadline.getTime() - (first.dur + rest) * MIN)];
+  } else {
+    cands = allDepartures(first, day);
+  }
+  let best = null;
+  for (const dep of cands) {
+    const r = chainFrom(legs, dep);
+    if (r.ok && r.arr.getTime() <= deadline.getTime() && (!best || dep > best.dep)) best = { ...r, dep };
+  }
+  return best;
+}
+function planReturn(opt, flightDep, buffer) {
+  const tz = 1;
+  const deadline = new Date(flightDep.getTime() - buffer * MIN);
+  const day = localDay(deadline, tz);
+  const firstLeg = opt.legs[0];
+  let same = null;
+  if (firstLeg.sched && firstLeg.sched.tbd) {
+    /* an unknown timetable: work back from the deadline until the chain fits */
+    const rest = opt.legs.slice(1).reduce((a, l) => a + l.dur + (l.transfer || 10), 0);
+    for (let k = 0; k < 16 && !same; k++) {
+      const dep = new Date(deadline.getTime() - (firstLeg.dur + rest + k * 10) * MIN);
+      if (partsIn(dep, tz).hh < 6) break;
+      const r = chainFrom(opt.legs, dep);
+      if (r.ok && r.arr.getTime() <= deadline.getTime()) same = { ...r, dep };
+    }
+  } else {
+    same = bestChain(opt.legs, deadline, day);
+  }
+  if (same) return { ok: true, overnight: false, legs: same.legs, dep: same.dep, arr: same.arr };
+  if (typeof opt.splitAt === "number" && !opt.noOvernight) {
+    const nightDay = addDays(day, -1);
+    const head = bestChain(opt.legs.slice(0, opt.splitAt), at(nightDay, DATA.assumptions.hotelCutoff, tz), nightDay);
+    const tailLegs = opt.legs.slice(opt.splitAt);
+    const tail = tailLegs.length ? bestChain(tailLegs, deadline, day) : { ok: true, legs: [], arr: deadline };
+    if (head && tail) {
+      return { ok: true, overnight: true, split: opt.splitAt, city: opt.splitCity, legs: [...head.legs, ...tail.legs],
+               dep: head.dep, arr: tail.arr, nightDate: nightDay };
+    }
+  }
+  let fallback = null;
+  if (firstLeg.sched && firstLeg.sched.tbd) {
+    const rest = opt.legs.slice(1).reduce((a, l) => a + l.dur + (l.transfer || 10), 0);
+    fallback = chainFrom(opt.legs, new Date(deadline.getTime() - (firstLeg.dur + rest + 30) * MIN));
+  } else {
+    const early = allDepartures(firstLeg, day)[0];
+    fallback = early ? chainFrom(opt.legs, early) : null;
+  }
+  return { ok: false, legs: fallback && fallback.ok ? fallback.legs : [], dep: fallback ? fallback.dep : null, arr: fallback ? fallback.arr : null };
+}
+
+/* ---------- fares ---------- */
+const ROOT = d => DATA[d === "out" ? "outbound" : "return"];
+function findFlight(dir, id) { return ROOT(dir).flights.find(f => f.id === id) || ROOT(dir).flights.find(f => !f.disabled); }
+function findGround(dir, airport, id) {
+  const list = ROOT(dir).ground[airport] || [];
+  return list.find(g => g.id === id) || list[0] || null;
+}
+function fareList(carrier) { return carrier === "klm" ? DATA.carriers.klm.fares : DATA.carriers.wizz.fares; }
+function fareById(carrier, id) { const l = fareList(carrier); return l.find(f => f.id === id) || l[0]; }
+function farePrice(carrier, fareId, dir, sel) {
+  if (carrier === "klm") {
+    const f = fareById("klm", fareId);
+    const st = dir === "out" ? sel.out : sel.back;
+    let e = f.price + (f.comfort && st.comfort ? DATA.carriers.klm.comfortPrice : 0);
+    if (dir === "back" && st.price != null && !isNaN(st.price)) e = st.price + (f.comfort && st.comfort ? DATA.carriers.klm.comfortPrice : 0);
+    return { eur: e, ron: e * sel.ronPerEur };
+  }
+  const b = DATA.carriers.wizz.bundle[dir === "out" ? "out" : "back"];
+  const r = b.flightRON + b.adminRON + (fareId === "bundle" ? b.bundleRON : 0);
+  return { eur: r / sel.ronPerEur, ron: r };
+}
+function flightTimes(f, sel, dir) {
+  if (dir === "out") return { dep: at(f.dep.date, f.dep.time, nodeTz(f.dep.node)), arr: at(f.arr.date, f.arr.time, nodeTz(f.arr.node)) };
+  if (f.carrier === "klm") {
+    const t = sel.back.dep || smartBackDep(sel);
+    const dep = at(DATA.meta.backDate, t, 1);
+    return { dep, arr: new Date(dep.getTime() + (f.dur || 180) * MIN), derived: true };
+  }
+  return { dep: at(f.dep.date, f.dep.time, nodeTz(f.dep.node)), arr: at(f.arr.date, f.arr.time, nodeTz(f.arr.node)) };
+}
+function defaultBackDep(sel) {
+  const of = DATA.outbound.flights.find(f => f.id === sel.out.flight);
+  return of && of.carrier === "klm" && of.dep ? of.dep.time : "18:00";
+}
+/* the outbound clock time if that still connects, otherwise an evening departure */
+function smartBackDep(sel) {
+  const cand = defaultBackDep(sel);
+  const bf = findFlight("back", sel.back.flight);
+  if (bf.carrier !== "klm") return cand;
+  const opt = findGround("back", bf.dep.node, sel.back.ground);
+  if (!opt) return cand;
+  const dep = at(DATA.meta.backDate, cand, 1);
+  const rp = planReturn(opt, dep, DATA.assumptions.airportBuffer);
+  return rp.ok && !rp.overnight ? cand : "18:00";
+}
+
+/* ---------- the plan ---------- */
+function compute(sel) {
+  const items = [], warnings = [];
+  let infeasible = false;
+  const out = DATA.outbound, ret = DATA.return;
+
+  // ---- outbound
+  const oF = findFlight("out", sel.out.flight);
+  const oT = flightTimes(oF, sel, "out");
+  const oFare = fareById(oF.carrier, sel.out.fare);
+  const oP = farePrice(oF.carrier, sel.out.fare, "out", sel);
+  items.push({ kind: "flight", dir: "out", from: oF.dep.node, to: oF.arr.node, dep: oT.dep, arr: oT.arr,
+    title: oF.name, sub: oF.sub, fare: oFare.name, price: oP.eur, priceRon: oP.ron, ronNative: oF.carrier === "wizz",
+    note: oFare.desc });
+
+  const oG = findGround("out", oF.arr.node, sel.out.ground);
+  if (!oG) {
+    warnings.push({ sev: "stop", title: "No last mile for " + oF.arr.node,
+      body: "This airport has no ground options in the data yet." });
+  } else {
+    const ch = chainAfter(oG.legs, oT.arr);
+    if (!ch.ok) {
+      infeasible = true;
+      warnings.push({ sev: "stop", title: "No connection after landing",
+        body: "The " + (ch.failedOn.operator || "next") + " has no departure left after your flight lands. Pick another last mile or an earlier flight." });
+    } else {
+      ch.legs.forEach(x => items.push({ kind: "ground", dir: "out", from: x.leg.from, to: x.leg.to, dep: x.dep, arr: x.arr,
+        mode: x.leg.mode, title: x.leg.operator || "", price: groundPrice(x.leg, x.dep, sel).eur,
+        priceRon: groundPrice(x.leg, x.dep, sel).ron, dal: dalApplied(x.leg, x.dep, sel),
+        note: x.leg.note, tbd: x.tbd, unverified: x.leg.unverified, key: x.leg.key }));
+    }
+  }
+
+  // ---- return
+  let backStart = null;
+  if (sel.roundTrip) {
+    const bF = findFlight("back", sel.back.flight);
+    const bT = flightTimes(bF, sel, "back");
+    const bFare = fareById(bF.carrier, sel.back.fare);
+    const bP = farePrice(bF.carrier, sel.back.fare, "back", sel);
+    const gOpt = findGround("back", bF.dep.node, sel.back.ground);
+
+    if (!gOpt) {
+      warnings.push({ sev: "stop", title: "No way back from " + bF.dep.node, body: "Add ground options for this airport." });
+    } else {
+      const rp = planReturn(gOpt, bT.dep, DATA.assumptions.airportBuffer);
+      if (!rp.ok) {
+        infeasible = true;
+        warnings.push({ sev: "stop", title: "No connection reaches the airport in time",
+          body: "Nothing from Groningen gets you to " + DATA.nodes[bF.dep.node].short + " before a " + fmtT(bT.dep, 1) +
+                " departure. The legs below are the closest the timetable gets. Move the flight later or plan a night near the airport." });
+      }
+      {
+        const headLegs = rp.overnight ? rp.legs.slice(0, rp.split) : rp.legs;
+        headLegs.forEach(x => items.push({ kind: "ground", dir: "back", from: x.leg.from, to: x.leg.to, dep: x.dep, arr: x.arr,
+          mode: x.leg.mode, title: x.leg.operator || "", price: groundPrice(x.leg, x.dep, sel).eur,
+          priceRon: groundPrice(x.leg, x.dep, sel).ron, dal: dalApplied(x.leg, x.dep, sel),
+          note: x.leg.note, tbd: x.tbd, unverified: x.leg.unverified, key: x.leg.key }));
+        backStart = rp.dep;
+
+        if (rp.overnight) {
+          const night = rp.nightDate;
+          items.push({ kind: "hotel", dir: "back", city: rp.city, night, price: sel.hotel,
+            title: "Night in " + (DATA.nodes[rp.city] ? DATA.nodes[rp.city].city : rp.city),
+            note: "The 09:25 departure cannot be reached from Groningen on the day. Sleep near the airport instead." });
+          const tailLegs = rp.legs.slice(rp.split);
+          tailLegs.forEach(x => items.push({ kind: "ground", dir: "back", from: x.leg.from, to: x.leg.to, dep: x.dep, arr: x.arr,
+            mode: x.leg.mode, title: x.leg.operator || "", price: groundPrice(x.leg, x.dep, sel).eur,
+            priceRon: groundPrice(x.leg, x.dep, sel).ron, dal: dalApplied(x.leg, x.dep, sel),
+            note: x.leg.note, tbd: x.tbd, unverified: x.leg.unverified, key: x.leg.key }));
+        }
+
+        // the three hour rule, stated either way
+        const gap = rp.dep ? Math.round((bT.dep - rp.dep) / MIN) : 0;
+        if (rp.overnight) {
+          const cityName = DATA.nodes[rp.city] ? DATA.nodes[rp.city].city : rp.city;
+          warnings.push({ sev: "warn", title: "Overnight in " + cityName + " on " + dayName(rp.nightDate) + " required",
+            body: bF.name + " leaves " + DATA.nodes[bF.dep.node].short + " at " + fmtT(bT.dep, 1) +
+                  ". No ground connection from Groningen reaches the airport in time that morning, so the plan above puts you in a hotel the night before.",
+            hotelInput: true });
+        } else if (gap < 180) {
+          warnings.push({ sev: "warn", title: "Tight connection at the airport",
+            body: "The train leaves Groningen " + durText(gap) + " before the flight. Under 3 hours is risky with a checked bag." });
+        }
+
+        if (rp.ok && !rp.overnight && bF.carrier === "klm") {
+          items.push({ kind: "check", dir: "back", minutes: gap, title: "Buffer at Schiphol",
+            note: gap >= 180 ? "Comfortable. Train arrives, then the flight leaves " + durText(gap) + " after you left Groningen."
+                             : "Below three hours. Reconsider the flight time." });
+        }
+      }
+    }
+    items.push({ kind: "flight", dir: "back", from: bF.dep.node, to: bF.arr.node, dep: bT.dep, arr: bT.arr,
+      title: bF.name, sub: bF.sub + (bT.derived ? ", times provisional" : ""), fare: bFare.name,
+      price: bP.eur, priceRon: bP.ron, ronNative: bF.carrier === "wizz", note: bF.note });
+  }
+
+  // ---- the stay in Groningen
+  if (sel.roundTrip) {
+    const outArr = items.filter(i => i.dir === "out" && i.kind !== "check").pop();
+    const idx = items.findIndex(i => i.dir === "back");
+    if (outArr && backStart && backStart > outArr.arr && idx >= 0) {
+      const n = nightsBetween(outArr.arr, backStart, 1);
+      items.splice(idx, 0, {
+        kind: "stay", dir: "stay", city: "Groningen", from: outArr.arr, to: backStart, nights: Math.max(1, n)
+      });
+    }
+  }
+
+  // ---- totals
+  const priced = items.filter(i => typeof i.price === "number");
+  const totalEUR = priced.reduce((a, i) => a + i.price, 0);
+  const first = items[0], last = [...items].reverse().find(i => i.arr || i.arr === 0);
+  const totalMin = last && last.arr ? Math.round((last.arr - first.dep) / MIN) : null;
+
+  // ---- standing warnings
+  if (oF.carrier === "wizz" && sel.out.fare === "nobundle") {
+    warnings.push({ sev: "warn", title: "Wizz price without the bundle is an estimate",
+      body: "RON 498 round trip comes from the two fares plus admin fees. Wizz only sells the free 40x30x20 bag at that price, so a cabin bag costs extra." });
+  }
+  if (oF.carrier === "klm" && sel.out.fare === "basic") {
+    warnings.push({ sev: "info", title: "Basic fare carries a small bag only",
+      body: "40x30x15, no hand baggage, no changes. Fine for two nights if you pack small, otherwise look at Light." });
+  }
+  if (sel.dal) {
+    const peakLegs = items.filter(i => i.kind === "ground" && i.mode === "train" && i.dal === false);
+    if (peakLegs.length) {
+      warnings.push({ sev: "info", title: "Dal Voordeel does not apply on every train",
+        body: "The 40% discount runs off-peak only, not on weekdays 06:30 to 09:00 and 16:00 to 18:30. " +
+              peakLegs.length + " train in this plan departs inside those hours and is priced at full fare." });
+    }
+    warnings.push({ sev: "info", title: "Dal Voordeel needs a subscription",
+      body: "EUR 19.98 per trip assumes the NS Flex subscription is already paid for. The monthly fee is not in the total." });
+  }
+  const unv = [...new Set(items.filter(i => i.unverified || i.tbd).map(i => i.title || i.kind))];
+  if (unv.length) {
+    warnings.push({ sev: "info", title: "Some numbers are placeholders",
+      body: "Not checked yet: " + unv.join(", ") + ". Edit the ones with an input below.",
+      busInput: items.some(i => i.key === "busFare") });
+  }
+  const order = { stop: 0, warn: 1, info: 2 };
+  warnings.sort((a, b) => order[a.sev] - order[b.sev]);
+
+  return { items, warnings, totalEUR, totalMin, infeasible, stops: warnings.filter(w => w.sev === "stop").length };
+}
+
+function dalApplies(leg, dep) {
+  if (!leg.priceDal) return false;
+  const tz = nodeTz(leg.from), p = partsIn(dep, tz);
+  if (p.dow === 0 || p.dow === 6) return true;
+  const m = p.hh * 60 + p.mm;
+  return !DATA.assumptions.peakWindows.some(([a, b]) => m >= hmt(a) && m < hmt(b));
+}
+function dalApplied(leg, dep, sel) {
+  if (!leg.priceDal) return null;
+  return sel.dal ? dalApplies(leg, dep) : false;
+}
+function groundPrice(leg, dep, sel) {
+  if (leg.priceRON) { const e = leg.priceRON / sel.ronPerEur; return { eur: e, ron: leg.priceRON }; }
+  let e = leg.key === "busFare" && sel.busFare != null ? sel.busFare : leg.price;
+  if (sel.dal && leg.priceDal && dalApplies(leg, dep)) e = leg.priceDal;
+  return { eur: e, ron: e * sel.ronPerEur };
+}
+
+/* ---------- state ---------- */
+const state = {
+  dir: "out",
+  sel: {
+    roundTrip: true,
+    dal: false,
+    ronPerEur: DATA.fx.ronPerEur,
+    hotel: DATA.assumptions.hotelNight,
+    busFare: 5.50,
+    out: { flight: "klm-0600", fare: "basic", ground: "A", comfort: false },
+    back: { flight: "klm-back", fare: "basic", ground: "A-rev", comfort: false, dep: null, price: null }
+  }
+};
+let lastPlan = null;
+let map, layerGroup;
+
+/* ---------- render: editor ---------- */
+function renderEditor() {
+  const dir = state.dir, sel = state.sel;
+  const f = findFlight(dir, sel[dir].flight);
+  const carrier = f.carrier || "klm";
+  const airport = dir === "out" ? f.arr.node : f.dep.node;
+  const grounds = ROOT(dir).ground[airport] || [];
+  const html = [];
+
+  /* step 1: flight */
+  html.push(`<div class="step"><div class="step-head"><span class="step-n">01</span><h3>${dir === "out" ? "Flight from Bucharest" : "Flight back"}</h3>
+    <span class="step-meta">${ROOT(dir).flights.filter(x => !x.disabled).length} options</span></div><div class="opts" role="radiogroup" aria-label="Flight">`);
+
+  ROOT(dir).flights.forEach(x => {
+    const dis = !!x.disabled;
+    const on = !dis && x.id === f.id;
+    let detail = "", price = "";
+    if (!dis) {
+      const t = flightTimes(x, sel, dir);
+      const p = farePrice(x.carrier, sel[dir].fare, dir, sel);
+      const mins = Math.round((t.arr - t.dep) / MIN);
+      const dNode = x.dep.node, aNode = x.arr.node;
+      detail = `${fmtT(t.dep, nodeTz(dNode))} ${dNode} → ${fmtT(t.arr, nodeTz(aNode))} ${aNode} <em>/${durText(mins)}</em>`;
+      price = x.carrier === "wizz" ? `${eur(p.eur)}<small>RON ${ron(p.ron)}</small>` : `${eur(p.eur)}<small>per person</small>`;
+    } else {
+      detail = "No times, no price, no fare";
+      price = `<span class="chip them">not yet added</span>`;
+    }
+    html.push(`<label class="opt ${on ? "sel" : ""} ${dis ? "off" : ""}">
+      <input type="radio" name="flight-${dir}" value="${x.id}" ${on ? "checked" : ""} ${dis ? "disabled" : ""}>
+      <span><span class="opt-title">${x.name} <span class="opt-sub">${x.sub}</span></span>
+        <span class="opt-detail">${detail}</span>
+        ${x.note ? `<span class="opt-note">${x.note}</span>` : ""}</span>
+      <span class="opt-price">${price}</span></label>`);
+  });
+  html.push(`</div></div>`);
+
+  /* step 2: fare */
+  html.push(`<div class="step"><div class="step-head"><span class="step-n">02</span><h3>${carrier === "klm" ? "Fare and baggage" : "Baggage bundle"}</h3>
+    <span class="step-meta">${carrier === "klm" ? "5 fares" : "toggle"}</span></div><div class="opts" role="radiogroup" aria-label="Fare">`);
+
+  if (carrier === "klm") {
+    DATA.carriers.klm.fares.forEach(fr => {
+      const on = fr.id === sel[dir].fare;
+      const p = farePrice("klm", fr.id, dir, { ...sel, [dir]: { ...sel[dir], comfort: false } });
+      html.push(`<label class="opt ${on ? "sel" : ""}">
+        <input type="radio" name="fare-${dir}" value="${fr.id}" ${on ? "checked" : ""}>
+        <span><span class="opt-title">${fr.name}</span><span class="opt-note">${fr.desc}</span></span>
+        <span class="opt-price">${eur(fr.price)}${fr.comfort ? `<small>+${eur(DATA.carriers.klm.comfortPrice)} comfort</small>` : `<small>one way</small>`}</span></label>`);
+    });
+    const cur = fareById("klm", sel[dir].fare);
+    const hasComfort = !!cur.comfort;
+    html.push(`<label class="fare-extra ${hasComfort ? "" : "dis"}">
+      <input type="checkbox" id="comfort" ${sel[dir].comfort && hasComfort ? "checked" : ""} ${hasComfort ? "" : "disabled"}>
+      Economy Comfort (extra legroom)
+      <span class="fare-extra-price">${hasComfort ? "+" + eur(DATA.carriers.klm.comfortPrice) : "Standard and Flex only"}</span></label>`);
+    if (dir === "back") {
+      html.push(`<div class="field">Return fare per person
+        <input type="number" id="backPrice" step="0.01" min="0" value="${(sel.back.price != null ? sel.back.price : cur.price).toFixed(2)}" inputmode="decimal"> EUR
+        <span class="tbd">not collected</span>
+        ${sel.back.price != null ? `<button class="linkbtn" id="resetPrice">use fare price</button>` : ""}</div>`);
+      html.push(`<div class="field">Departs AMS
+        <input type="time" id="backDep" value="${sel.back.dep || smartBackDep(sel)}">
+        <span class="tbd">provisional</span>
+        <button class="linkbtn" id="resetDep">match outbound</button></div>`);
+    }
+  } else {
+    DATA.carriers.wizz.fares.forEach(fr => {
+      const on = fr.id === sel[dir].fare;
+      const p = farePrice("wizz", fr.id, dir, sel);
+      const b = DATA.carriers.wizz.bundle[dir === "out" ? "out" : "back"];
+      const html2 = fr.id === "bundle"
+        ? `Flight RON ${ron(b.flightRON)} + bundle RON ${ron(b.bundleRON)} + admin RON ${ron(b.adminRON)}`
+        : `Flight RON ${ron(b.flightRON)} + admin RON ${ron(b.adminRON)}, no bundle`;
+      html.push(`<label class="opt ${on ? "sel" : ""}">
+        <input type="radio" name="fare-${dir}" value="${fr.id}" ${on ? "checked" : ""}>
+        <span><span class="opt-title">${fr.name}</span><span class="opt-detail">${html2}</span>
+          <span class="opt-note">${fr.desc}</span></span>
+        <span class="opt-price">${eur(p.eur)}<small>RON ${ron(p.ron)}</small></span></label>`);
+    });
+  }
+  html.push(`</div></div>`);
+
+  /* step 3: last mile */
+  html.push(`<div class="step"><div class="step-head"><span class="step-n">03</span><h3>${dir === "out" ? "Airport to Groningen" : "Groningen to the airport"}</h3>
+    <span class="step-meta">${airport} · ${grounds.length} options</span></div><div class="opts" role="radiogroup" aria-label="Last mile">`);
+
+  grounds.forEach(g => {
+    const on = g.id === sel[dir].ground;
+    let detail = "", tag = "";
+    if (dir === "out") {
+      const ch = chainAfter(g.legs, flightTimes(f, sel, "out").arr);
+      if (ch.ok) {
+        const dep = fmtT(ch.legs[0].dep, nodeTz(ch.legs[0].leg.from));
+        const arr = fmtT(ch.arr, nodeTz(g.legs[g.legs.length - 1].to));
+        const mins = Math.round((ch.arr - ch.legs[0].dep) / MIN);
+        detail = `${dep} ${g.legs[0].from} → ${arr} ${g.legs[g.legs.length - 1].to} <em>/${durText(mins)}</em>`;
+      } else { detail = "no departure left after landing"; tag = `<span class="chip bad">too late</span>`; }
+    } else {
+      const rp = planReturn(g, flightTimes(f, sel, "back").dep, DATA.assumptions.airportBuffer);
+      if (rp.ok && !rp.overnight) {
+        detail = `${fmtT(rp.dep, 1)} GRQ → ${fmtT(rp.arr, 1)} ${f.dep.node} <em>/${durText(Math.round((rp.arr - rp.dep) / MIN))}</em>`;
+        tag = `<span class="chip good">reaches flight</span>`;
+      } else if (rp.ok && rp.overnight) {
+        detail = `${dayName(rp.nightDate)} ${fmtT(rp.dep, 1)} GRQ → hotel → ${fmtT(rp.arr, 1)} ${f.dep.node}`;
+        tag = `<span class="chip warn">hotel night</span>`;
+      } else { detail = "no connection that morning"; tag = `<span class="chip bad">too late</span>`; }
+    }
+    const p = g.legs.reduce((a, l) => a + (l.priceRON ? l.priceRON / sel.ronPerEur : l.price), 0);
+    html.push(`<label class="opt ${on ? "sel" : ""}">
+      <input type="radio" name="ground-${dir}" value="${g.id}" ${on ? "checked" : ""}>
+      <span><span class="opt-title">${g.name} <span class="opt-sub">${g.sub}</span></span>
+        <span class="opt-detail">${detail}</span>
+        ${g.note ? `<span class="opt-note">${g.note}</span>` : ""}
+        ${tag ? `<span style="display:inline-block;margin-top:6px">${tag}</span>` : ""}</span>
+      <span class="opt-price">${eur(p)}<small>${sel.dal ? "with discount" : "full fare"}</small></span></label>`);
+  });
+  if (!grounds.length) html.push(`<p class="leg-note">No ground options for ${airport} yet. Add them in DATA.${dir}.ground.${airport}.</p>`);
+  html.push(`</div>`);
+  html.push(`<label class="switch dal-switch"><input type="checkbox" id="dal" ${sel.dal ? "checked" : ""}>
+    <span>NS Flex Dal Voordeel<em>40% off trains outside peak hours, subscription not included</em></span></label>`);
+  html.push(`</div>`);
+
+  $("#editor").innerHTML = html.join("");
+  wireEditor();
+}
+
+function wireEditor() {
+  const dir = state.dir, sel = state.sel;
+  document.querySelectorAll(`input[name="flight-${dir}"]`).forEach(inp => {
+    inp.addEventListener("change", () => {
+      const f = findFlight(dir, inp.value);
+      sel[dir].flight = f.id;
+      sel[dir].fare = fareList(f.carrier)[0].id;
+      sel[dir].comfort = false;
+      if (dir === "back") { sel.back.dep = null; sel.back.price = null; }
+      const airport = dir === "out" ? f.arr.node : f.dep.node;
+      const list = ROOT(dir).ground[airport] || [];
+      sel[dir].ground = list.length ? list[0].id : null;
+      renderEditor(); refresh(true);
+    });
+  });
+  document.querySelectorAll(`input[name="fare-${dir}"]`).forEach(inp => {
+    inp.addEventListener("change", () => { sel[dir].fare = inp.value; renderEditor(); refresh(true); });
+  });
+  document.querySelectorAll(`input[name="ground-${dir}"]`).forEach(inp => {
+    inp.addEventListener("change", () => { sel[dir].ground = inp.value; renderEditor(); refresh(true); });
+  });
+  const dalBox = $("#dal");
+  if (dalBox) dalBox.addEventListener("change", () => { state.sel.dal = dalBox.checked; refresh(true); });
+  const comfort = $("#comfort");
+  if (comfort) comfort.addEventListener("change", () => { sel[dir].comfort = comfort.checked; refresh(true); });
+  const bp = $("#backPrice");
+  if (bp) bp.addEventListener("input", () => { sel.back.price = bp.value === "" ? null : parseFloat(bp.value); refresh(false); });
+  const bd = $("#backDep");
+  if (bd) bd.addEventListener("change", () => { sel.back.dep = bd.value || null; refresh(true); });
+  const rp = $("#resetPrice");
+  if (rp) rp.addEventListener("click", () => { sel.back.price = null; renderEditor(); refresh(true); });
+  const rd = $("#resetDep");
+  if (rd) rd.addEventListener("click", () => { sel.back.dep = null; renderEditor(); refresh(true); });
+}
+
+/* ---------- render: timeline ---------- */
+function renderTimeline(plan) {
+  const html = [];
+  let seenDir = null;
+  const spans = {};
+  plan.items.forEach(it => {
+    if (it.dir === "stay" || it.kind === "hotel" || it.kind === "check") return;
+    const s = it.dep, e = it.arr;
+    if (!spans[it.dir]) spans[it.dir] = { s, e };
+    if (s && s < spans[it.dir].s) spans[it.dir].s = s;
+    if (e && e > spans[it.dir].e) spans[it.dir].e = e;
+  });
+  plan.items.forEach((it, i) => {
+    if (it.dir !== seenDir && it.dir !== "stay") {
+      seenDir = it.dir;
+      const sp = spans[it.dir] || { s: new Date(), e: new Date() };
+      const d1 = dayName(localDay(sp.s, 1)), d2 = dayName(localDay(sp.e, 1));
+      const label = d1 === d2 ? d1 : d1 + " to " + d2;
+      html.push(`<div class="dirsep"><b>${it.dir === "out" ? "Outbound" : "Return"}</b> <span>${label}</span><span class="ln"></span></div>`);
+    }
+    const tz = it.dir === "back" ? (it.to === "OTP" ? 2 : 1) : (it.from === "OTP" ? 2 : 1);
+    if (it.kind === "stay") {
+      html.push(`<li class="leg stay"><span class="dot">${ico("bed", 11)}</span>
+        <div class="leg-head"><span class="leg-time">${it.nights} ${it.nights === 1 ? "night" : "nights"}</span></div>
+        <div class="leg-title">${it.city}</div>
+        <div class="leg-meta">${dayName(localDay(it.from, 1))} to ${dayName(localDay(it.to, 1))}</div></li>`);
+      return;
+    }
+    if (it.kind === "check") {
+      html.push(`<li class="leg"><span class="dot">${ico("check", 10)}</span>
+        <div class="leg-head"><span class="leg-title">${it.title}</span></div>
+        <div class="leg-note">${it.note}</div></li>`);
+      return;
+    }
+    if (it.kind === "hotel") {
+      const city = DATA.nodes[it.city] ? DATA.nodes[it.city].city : it.city;
+      html.push(`<li class="leg back stay"><span class="dot">${ico("bed", 11)}</span>
+        <div class="leg-head"><span class="leg-time">${dayName(it.night)}</span>
+          <span class="leg-price">${eur(it.price)}<span class="ron">estimated</span></span></div>
+        <div class="leg-title">Night in ${city}</div>
+        <div class="leg-note">${it.note}</div></li>`);
+      return;
+    }
+    const aTz = nodeTz(it.from), bTz = nodeTz(it.to);
+    const dayMark = localDay(it.dep, aTz) !== localDay(it.arr, bTz) ? " <em>+1d</em>" : "";
+    const priceBlock = typeof it.price === "number"
+      ? `<span class="leg-price">${eur(it.price)}${it.ronNative ? `<span class="ron">RON ${ron(it.priceRon)}</span>` : ""}</span>` : "";
+    const modeIcon = ico(it.kind === "hotel" ? "bed" : it.mode || "plane", 12);
+    const meta = [];
+    meta.push("<em>" + (it.kind === "flight" ? it.fare : durText(Math.round((it.arr - it.dep) / MIN))) + "</em>");
+    if (it.kind === "flight" && it.sub) meta.push(it.sub);
+    if (it.tbd) meta.push("time estimated");
+    if (it.kind === "hotel") meta.push("one night, estimated cost");
+    if (it.unverified) meta.push('<em>unverified price</em>');
+    if (it.dal === true) meta.push('<em>Dal Voordeel price</em>');
+    if (it.dal === false && it.mode === "train" && state.sel.dal) meta.push('<em>full fare, peak hours</em>');
+
+    html.push(`<li class="leg ${it.dir === "back" ? "back" : ""}">
+      <span class="dot">${modeIcon}</span>
+      <div class="leg-head">
+        <span class="leg-time">${fmtT(it.dep, aTz)} <span class="arr">${fmtT(it.arr, bTz)}${dayMark}</span></span>
+        ${priceBlock}
+      </div>
+      <div class="leg-title">${DATA.nodes[it.from].short} ${DATA.nodes[it.from].city} → ${DATA.nodes[it.to].short} ${DATA.nodes[it.to].city}</div>
+      <div class="leg-meta">${it.title ? it.title + " · " : ""}${meta.join(" · ")}</div>
+      ${it.note ? `<div class="leg-note">${it.note}</div>` : ""}
+    </li>`);
+  });
+
+  const p = plan;
+  html.push(`<div class="sum-row">
+    <span>Total <b>${eur(p.totalEUR)}</b> · RON <b>${ron(p.totalEUR * state.sel.ronPerEur)}</b></span>
+    <span>Door to door <b>${durText(p.totalMin)}</b></span></div>`);
+  $("#timeline").innerHTML = html.join("");
+  $("#timeline").querySelectorAll(".leg").forEach((el, i) => el.style.setProperty("--i", i));
+}
+
+/* ---------- render: warnings ---------- */
+function renderWarnings(plan) {
+  const host = $("#warnings");
+  const list = plan.warnings;
+  if (!list.length) {
+    host.innerHTML = `<div class="cleanline">${ico("check", 13)} Nothing flagged for this combination.</div>`;
+    return;
+  }
+  host.innerHTML = list.map((w, i) => `
+    <div class="warn ${w.sev === "stop" ? "stop" : w.sev === "warn" ? "warn-lvl" : "info"}">
+      <span class="wi">${ico(w.sev === "stop" ? "alert" : w.sev === "warn" ? "alert" : "info", 15)}</span>
+      <div><h4>${w.title}</h4><p>${w.body}</p>
+      ${w.hotelInput ? `<div class="field">Hotel for one night
+        <input type="number" id="hotel" step="1" min="0" value="${state.sel.hotel}" inputmode="decimal"> EUR
+        <span class="tbd">default, unverified</span></div>` : ""}
+      ${w.busInput ? `<div class="field">Airport bus Eindhoven, single
+        <input type="number" id="busFare" step="0.05" min="0" value="${state.sel.busFare.toFixed(2)}" inputmode="decimal"> EUR
+        <span class="tbd">not checked</span></div>` : ""}
+      </div></div>`).join("");
+  const h = $("#hotel");
+  if (h) h.addEventListener("input", () => { state.sel.hotel = parseFloat(h.value) || 0; refresh(false, true); });
+  const bf = $("#busFare");
+  if (bf) bf.addEventListener("input", () => { const v = parseFloat(bf.value); state.sel.busFare = isNaN(v) ? 5.50 : v; refresh(false, true); });
+}
+
+/* ---------- render: comparison ---------- */
+function renderCompare() {
+  const base = JSON.parse(JSON.stringify(state.sel));
+  const rows = DATA.presets.map(ps => {
+    const sel = { ...base, roundTrip: true, dal: false,
+      out: { ...base.out, ...ps.out }, back: { ...base.back, ...ps.back, dep: null, price: null } };
+    const p = compute(sel);
+    const cur = state.sel.out.flight === ps.out.flight && state.sel.out.fare === ps.out.fare &&
+                state.sel.out.ground === ps.out.ground && state.sel.back.ground === ps.back.ground;
+    return `<tr data-preset="${ps.id}" class="${cur ? "cur" : ""}">
+      <td><div class="tname">${ps.label}<span>${ps.sub}</span></div></td>
+      <td class="num">${p.infeasible ? '<span class="chip bad">no connection</span>' : eur(p.totalEUR)}</td>
+      <td class="num">${p.infeasible ? "\u2014" : durText(p.totalMin)}</td>
+      <td class="act"><button class="usebtn" data-use="${ps.id}">${cur ? "loaded" : "load"}</button></td></tr>`;
+  }).join("");
+  $("#compare").innerHTML = `<thead><tr><th>Combination</th><th>Total</th><th>Time</th><th></th></tr></thead><tbody>${rows}</tbody>`;
+  document.querySelectorAll("[data-use]").forEach(b => b.addEventListener("click", () => {
+    const ps = DATA.presets.find(x => x.id === b.dataset.use);
+    state.sel.roundTrip = true;
+    state.sel.out = { ...state.sel.out, ...ps.out, comfort: false };
+    state.sel.back = { ...state.sel.back, ...ps.back, comfort: false, dep: null, price: null };
+    $("#roundtrip").checked = true;
+    renderEditor(); refresh(true);
+  }));
+}
+
+/* ---------- the map ---------- */
+function arc(a, b, k) {
+  const pts = [];
+  const [la1, lo1] = a, [la2, lo2] = b;
+  const mla = (la1 + la2) / 2, mlo = (lo1 + lo2) / 2;
+  const dla = la2 - la1, dlo = lo2 - lo1;
+  const cla = mla - dlo * k, clo = mlo + dla * k;
+  for (let i = 0; i <= 36; i++) {
+    const t = i / 36, u = 1 - t;
+    pts.push([u * u * la1 + 2 * u * t * cla + t * t * la2, u * u * lo1 + 2 * u * t * clo + t * t * lo2]);
+  }
+  return pts;
+}
+function offsetLine(pts, d) {
+  return pts.map((p, i) => {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    const dy = b[1] - a[1], dx = b[0] - a[0];
+    const len = Math.hypot(dx, dy) || 1;
+    return [p[0] - d * dy / len, p[1] + d * dx / len];
+  });
+}
+function drawMap(plan) {
+  if (!map) return;
+  const light = document.documentElement.getAttribute("data-theme") !== "dark";
+  const C = { out: light ? "#0b6a57" : "#5fcbb0", back: light ? "#8a3a5b" : "#e08cb0" };
+  if (!layerGroup) layerGroup = L.layerGroup().addTo(map);
+  layerGroup.clearLayers();
+
+  const all = [];
+  plan.items.filter(i => i.kind === "flight" || i.kind === "ground").forEach(it => {
+    const A = [DATA.nodes[it.from].lat, DATA.nodes[it.from].lng];
+    const B = [DATA.nodes[it.to].lat, DATA.nodes[it.to].lng];
+    let pts = it.kind === "flight" ? arc(A, B, 0.20) : [A, B];
+    if (it.dir === "back") pts = it.kind === "flight" ? pts : offsetLine(pts, 0.05);
+    const dash = it.kind === "flight" ? "7 7" : it.mode === "bus" ? "1 6" : null;
+    L.polyline(pts, {
+      color: C[it.dir], weight: it.kind === "flight" ? 2 : it.mode === "bus" ? 3 : 2.6,
+      opacity: it.tbd ? 0.55 : 0.95, dashArray: dash, lineCap: it.mode === "bus" ? "round" : "butt",
+      className: "route-line"
+    }).addTo(layerGroup);
+    all.push(...pts);
+  });
+
+  const used = new Set();
+  plan.items.forEach(i => { if (DATA.nodes[i.from]) used.add(i.from); if (DATA.nodes[i.to]) used.add(i.to); });
+  used.forEach(k => {
+    const n = DATA.nodes[k];
+    L.circleMarker([n.lat, n.lng], { radius: 3.5, color: C.out, weight: 1.5, fillColor: light ? "#fbf9f3" : "#131a1d", fillOpacity: 1 })
+      .addTo(layerGroup)
+      .bindTooltip(n.name, { direction: "top", offset: [0, -6] });
+  });
+  ["OTP", "GRQ"].forEach(k => {
+    if (!used.has(k)) return;
+    const n = DATA.nodes[k];
+    L.marker([n.lat, n.lng], { icon: L.divIcon({ className: "node-label", html: n.short + " · " + n.city, iconSize: [0, 0] }), interactive: false })
+      .addTo(layerGroup);
+  });
+
+  if (all.length) map.fitBounds(L.latLngBounds(all).pad(0.18), { animate: false, maxZoom: 6 });
+}
+function initMap() {
+  map = L.map("map", {
+    zoomControl: true, scrollWheelZoom: false, tap: true,
+    dragging: window.innerWidth >= 1000, touchZoom: false,
+    attributionControl: true
+  }).setView([50.4, 15.5], 5);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 12, minZoom: 3, className: "map-tiles-dim",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+  setTimeout(() => { map.invalidateSize(); if (lastPlan) drawMap(lastPlan); }, 80);
+}
+
+/* ---------- icons ---------- */
+function ico(name, size) {
+  const s = size || 14;
+  const p = {
+    plane: '<path d="M12 2c.7 0 1.3.6 1.3 1.4v6.4l6.7 3.9v1.9l-6.7-2v4.3l2 1.4v1.6L12 20.3l-3.3.6v-1.6l2-1.4v-4.3l-6.7 2v-1.9l6.7-3.9V3.4C10.7 2.6 11.3 2 12 2Z" fill="currentColor" stroke="none"/>',
+    train: '<rect x="5" y="3" width="14" height="13" rx="3"/><path d="M5 10h14M7 19l-1.5 2.5M17 19l1.5 2.5M9 6.5h6"/>',
+    bus: '<rect x="3" y="5" width="18" height="12" rx="2.5"/><path d="M3 11h18M7 17v2.5M17 17v2.5"/><circle cx="7.5" cy="14" r=".6" fill="currentColor"/><circle cx="16.5" cy="14" r=".6" fill="currentColor"/>',
+    bed: '<path d="M3 18v-6h18v6M3 18h18M6 12V8.5h5V12M13 12V8.5h5V12"/>',
+    check: '<path d="m4 12.5 5 4.5L20 6"/>',
+    alert: '<path d="M12 3.5 2.5 20h19L12 3.5Z"/><path d="M12 10v4.2M12 17.2v.1"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6v.1"/>'
+  }[name] || "";
+  return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+}
+
+/* ---------- strip + refresh ---------- */
+function refresh(animate, skipWarnings) {
+  const sel = state.sel;
+  const plan = compute(sel);
+  lastPlan = plan;
+
+  $("#fEur").textContent = (plan.infeasible ? "\u2248 " : "") + plan.totalEUR.toFixed(2);
+  $("#fRon").textContent = (plan.infeasible ? "\u2248 " : "") + ron(plan.totalEUR * sel.ronPerEur);
+  $("#fDur").textContent = durText(plan.totalMin);
+  $("#fWarn").textContent = plan.warnings.length;
+  $("#fWarn").classList.toggle("hot", plan.stops > 0);
+  $("#figWarn").classList.toggle("warn", plan.stops > 0);
+
+  renderTimeline(plan);
+  if (!skipWarnings) renderWarnings(plan);
+  renderCompare();
+  drawMap(plan);
+
+  if (animate) {
+    const tl = $("#timeline");
+    tl.classList.remove("anim");
+    void tl.offsetWidth;
+    tl.classList.add("anim");
+    ["fEur", "fRon", "fDur"].forEach(id => {
+      const el = $("#" + id);
+      el.classList.add("flash");
+      setTimeout(() => el.classList.remove("flash"), 420);
+    });
+  }
+}
+
+/* ---------- summary text ---------- */
+function summaryText() {
+  const p = lastPlan, sel = state.sel;
+  const L = [];
+  L.push(`Bucharest to Groningen, 28 to 30 January 2027, 1 passenger`);
+  let dirNow = null;
+  p.items.forEach(it => {
+    if (it.dir !== dirNow && it.dir !== "stay") { dirNow = it.dir; L.push(""); L.push(it.dir === "out" ? "OUTBOUND, Thu 28 Jan" : "RETURN, Sat 30 Jan"); }
+    if (it.kind === "stay") { L.push(`  ${it.nights} nights in ${it.city}`); return; }
+    if (it.kind === "check") return;
+    if (it.kind === "hotel") { L.push(`  ${it.night}  hotel in ${DATA.nodes[it.city] ? DATA.nodes[it.city].city : it.city}, ${eur(it.price)} (estimated)`); return; }
+    const a = nodeTz(it.from), b = nodeTz(it.to);
+    L.push(`  ${fmtT(it.dep, a)} ${it.from} -> ${fmtT(it.arr, b)} ${it.to}  ${it.title || it.mode}  ${eur(it.price)}${it.tbd ? "  (time estimated)" : ""}`);
+  });
+  L.push("");
+  L.push(`Total ${eur(p.totalEUR)} / RON ${ron(p.totalEUR * sel.ronPerEur)} at 1 EUR = ${Number(sel.ronPerEur).toFixed(2)} RON`);
+  L.push(`Door to door ${durText(p.totalMin)}`);
+  if (p.warnings.length) {
+    L.push(""); L.push("Warnings:");
+    p.warnings.forEach(w => L.push(`  - ${w.title}. ${w.body.replace(/<[^>]+>/g, "")}`));
+  }
+  L.push(""); L.push("Prices per person, collected by hand, re-check before booking.");
+  return L.join("\n");
+}
+async function copySummary() {
+  const txt = summaryText();
+  try {
+    await navigator.clipboard.writeText(txt);
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+  }
+  const b = $("#copy"), l = $("#copyLabel");
+  b.classList.add("done"); l.textContent = "Copied";
+  setTimeout(() => { b.classList.remove("done"); l.textContent = "Copy summary"; }, 1900);
+}
+
+/* ---------- boot ---------- */
+function setTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  $("#themeLabel").textContent = t === "dark" ? "Light" : "Dark";
+  $("#theme").setAttribute("aria-pressed", t === "dark" ? "true" : "false");
+  try { localStorage.setItem("gt-theme", t); } catch (e) {}
+  const legend = document.querySelectorAll(".lg-dir i");
+  legend[0].style.background = t === "dark" ? "#5fcbb0" : "#0b6a57";
+  legend[1].style.background = t === "dark" ? "#e08cb0" : "#8a3a5b";
+  if (lastPlan) drawMap(lastPlan);
+}
+document.addEventListener("DOMContentLoaded", () => {
+  let saved = null;
+  try { saved = localStorage.getItem("gt-theme"); } catch (e) {}
+  setTheme(saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+
+  $("#theme").addEventListener("click", () =>
+    setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"));
+
+  $("#rate").addEventListener("input", e => {
+    const v = parseFloat(e.target.value);
+    state.sel.ronPerEur = v > 0 ? v : DATA.fx.ronPerEur;
+    refresh(false);
+  });
+
+  $("#roundtrip").addEventListener("change", e => {
+    state.sel.roundTrip = e.target.checked;
+    document.querySelectorAll(".seg button").forEach(b => { if (b.dataset.dir === "back") b.disabled = !e.target.checked; });
+    if (!e.target.checked && state.dir === "back") { state.dir = "out"; document.querySelectorAll(".seg button").forEach(b => b.classList.toggle("on", b.dataset.dir === "out")); }
+    renderEditor(); refresh(true);
+  });
+
+  document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+    if (b.disabled) return;
+    state.dir = b.dataset.dir;
+    document.querySelectorAll(".seg button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    renderEditor();
+  }));
+
+  $("#copy").addEventListener("click", copySummary);
+
+  $("#mapToggle").addEventListener("click", e => {
+    const pane = $("#mappane");
+    const hidden = pane.classList.toggle("collapsed");
+    e.target.textContent = hidden ? "Show map" : "Hide map";
+    e.target.setAttribute("aria-expanded", hidden ? "false" : "true");
+    setTimeout(() => map && map.invalidateSize(), 220);
+  });
+
+  initMap();
+  renderEditor();
+  refresh(false);
+
+  const head = $("#top");
+  const setStick = () => document.documentElement.style.setProperty("--stick", head.offsetHeight + "px");
+  setStick();
+  if (window.ResizeObserver) new ResizeObserver(setStick).observe(head);
+  window.addEventListener("resize", () => { setStick(); if (map) { map.invalidateSize(); if (lastPlan) drawMap(lastPlan); } }, { passive: true });
+
+  // tapping the map expands it on a phone; controls and the legend are left alone
+  $("#map").addEventListener("click", e => {
+    if (e.target.closest(".leaflet-control") || e.target.closest(".legend") || e.target.closest(".map-btn")) return;
+    if (window.innerWidth < 1000) {
+      const pane = $("#mappane");
+      pane.classList.toggle("expanded");
+      pane.style.height = pane.classList.contains("expanded") ? "70dvh" : "";
+      setTimeout(() => map.invalidateSize(), 220);
+    }
+  });
+});
+</script>
+</body>
+</html>
